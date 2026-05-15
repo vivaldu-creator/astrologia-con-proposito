@@ -253,20 +253,23 @@ async function buscarCiudad(q){
       const d=await r.json();
       const box=document.getElementById('city-r');
       if(!d.length){box.style.display='none';return;}
-      box.innerHTML=d.map(x=>'<div class="city-item" onclick="selCity(''+x.display_name.replace(/'/g,"\'")+"',"+x.lat+','+x.lon+')">'+x.display_name+'</div>').join('');
+      box.innerHTML=d.map(x=>{const n=x.display_name.replace(/"/g,'&quot;').replace(/'/g,'&#39;');return '<div class="city-item" onclick="selCity(this)" data-name="'+n+'" data-lat="'+x.lat+'" data-lon="'+x.lon+'">'+x.display_name+'</div>';}).join('');
       box.style.display='block';
     }catch(e){}
   },400);
 }
-function selCity(name,lat,lon){
+function selCity(el){
+  const name=el.dataset.name||el.textContent;
+  const lat=parseFloat(el.dataset.lat);
+  const lon=parseFloat(el.dataset.lon);
   document.getElementById('ciudad').value=name.split(',').slice(0,2).join(',');
-  document.getElementById('lat').value=parseFloat(lat).toFixed(4);
-  document.getElementById('lon').value=parseFloat(lon).toFixed(4);
-  const tz=Math.round(parseFloat(lon)/15);
+  document.getElementById('lat').value=lat.toFixed(4);
+  document.getElementById('lon').value=lon.toFixed(4);
+  const tz=Math.round(lon/15);
   document.getElementById('tz').value=tz;
   document.getElementById('city-r').style.display='none';
   document.getElementById('coords').style.display='block';
-  document.getElementById('coords-txt').textContent='📍 Lat: '+parseFloat(lat).toFixed(3)+'° | Lon: '+parseFloat(lon).toFixed(3)+'° | TZ: UTC'+(tz>=0?'+':'')+tz;
+  document.getElementById('coords-txt').textContent='📍 Lat: '+lat.toFixed(3)+'° | Lon: '+lon.toFixed(3)+'° | TZ: UTC'+(tz>=0?'+':'')+tz;
 }
 function prefillViviana(){
   document.getElementById('nombre').value='Viviana';
