@@ -373,7 +373,7 @@ async function genPreview(){
   try{
     const [y,mo,d]=fecha.split('-').map(Number);
     const [h,mn]=hora.split(':').map(Number);
-    const body={year:y,month:mo,date:d,hours:h,minutes:mn,seconds:0,latitude:lat,longitude:lon,timezone:tz,config:{observation_point:'topocentric',ayanamsha:'tropical'},language:'es'};
+    const body={year:y,month:mo,date:d,hours:h,minutes:mn,seconds:0,latitude:lat,longitude:lon,timezone:tz,config:{observation_point:'topocentric',ayanamsha:'tropical'}};
     const [pRes,wRes]=await Promise.all([
       fetch('https://json.freeastrologyapi.com/western/planets',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ASTRO_KEY},body:JSON.stringify(body)}),
       fetch('https://json.freeastrologyapi.com/western/natal-wheel-chart',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ASTRO_KEY},body:JSON.stringify(body)})
@@ -396,7 +396,7 @@ ${planetStr}
 EXTRACTOS DEL MANUAL DE ASTROLOGÍA:
 ${kbBundle.substring(0,12000)}
 
-TAREA: Genera una vista previa de 2 capítulos del informe "${selReport.name}" para ${nombre}.
+TAREA: Genera una vista previa de 2 capítulos del informe "${selRep.name}" para ${nombre}.
 
 FORMATO OBLIGATORIO (usa exactamente esto):
 ## Capítulo 1: [Título descriptivo]
@@ -497,6 +497,31 @@ function mostrarCompleto(nombre,texto){
 }
 
 function fbRep(n){return `CAPÍTULO 1: El Mapa del Alma\n${n}, tu carta natal revela una historia única tejida por los astros en el momento exacto de tu llegada al mundo.\n\nCAPÍTULO 2: Las Mareas Emocionales\nTu Luna describe la forma en que procesas las emociones y buscas seguridad interior.\n\nCAPÍTULO 3: La Máscara y el Ser\nTu Ascendente es la puerta de entrada a tu personalidad proyectada al mundo.\n\nCAPÍTULO 4: El Corazón y el Deseo\nVenus y Marte en tu carta hablan de cómo amas y qué te impulsa a actuar.\n\nCAPÍTULO 5: El Propósito y el Camino\n${n}, Júpiter y Saturno trazan el arco de tu crecimiento y madurez a lo largo de la vida.`;}
+
+function parseReportHTML(text){
+  if(!text) return '<p style="text-align:center;color:var(--ts);padding:2rem;">Generando...</p>';
+  let html='';
+  const lines=text.split('\n');
+  for(const line of lines){
+    const t=line.trim();
+    if(!t) continue;
+    if(t.startsWith('## ')){
+      html+='<div class="report-chapter-title">'+t.slice(3)+'</div>';
+    } else if(t.startsWith('### ')){
+      const body=t.slice(4);
+      const orbeIdx=body.toLowerCase().indexOf('orbe');
+      if(orbeIdx>-1){
+        html+='<div class="aspect-block-title">'+body.substring(0,orbeIdx).trim()+'<span class="aspect-orbe">'+body.substring(orbeIdx)+'</span></div>';
+      } else {
+        html+='<div class="planet-block-title">'+body+'</div>';
+      }
+    } else {
+      html+='<div class="planet-block-text">'+t+'</div>';
+    }
+  }
+  return html;
+}
+
 function reiniciar(){show('s-form');}
 </script>
 </body>
