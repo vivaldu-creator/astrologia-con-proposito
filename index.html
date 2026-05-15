@@ -289,27 +289,7 @@ function prefillViviana(){
 function selR(el){document.querySelectorAll('.ro').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');selRep={type:el.dataset.type,price:el.dataset.price,name:el.querySelector('.rn').textContent.trim()};}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 
-function buildKB(planets){
-  let bundle='';
-  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
-  for(const p of planets){
-    if(!shown.includes(p.name))continue;
-    const pEs=PLANET_ES[p.name]||p.name;
-    const sEs=SIGN_ES[p.sign]||p.sign;
-    const house=p.house||'?';
-    const s1=KB[pEs+'_'+sEs]||'';
-    const s2=KB[pEs+'_Casa'+house]||'';
-    if(s1)bundle+='
-
-=== '+pEs+' en '+sEs+' ===
-'+s1.substring(0,1500);
-    if(s2)bundle+='
-
-=== '+pEs+' en Casa '+house+' ===
-'+s2.substring(0,1500);
-  }
-  return bundle;
-}
+function buildKB(planets){var bundle='';var shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];for(var i=0;i<planets.length;i++){var p=planets[i];if(shown.indexOf(p.name)<0)continue;var pEs=PLANET_ES[p.name]||p.name;var sEs=SIGN_ES[p.sign]||p.sign;var house=p.house||'?';var s1=KB[pEs+'_'+sEs]||'';var s2=KB[pEs+'_Casa'+house]||'';if(s1)bundle=bundle+'\n\n=== '+pEs+' en '+sEs+' ===\n'+s1.substring(0,1500);if(s2)bundle=bundle+'\n\n=== '+pEs+' en Casa '+house+' ===\n'+s2.substring(0,1500);}return bundle;}
 
 async function genPreview(){
   const apiKey=document.getElementById('apiKey').value.trim();
@@ -342,26 +322,7 @@ async function genPreview(){
     const kbBundle=buildKB(pData);
     const planetStr=pData.slice(0,14).map(p=>(PLANET_ES[p.name]||p.name)+': '+(SIGN_ES[p.sign]||p.sign)+' '+Math.floor(p.position)+'°'+(p.isRetrograde?' (Rx)':'')+', Casa '+(p.house||'?')).join('
 ');
-    const prompt='Eres una astróloga experta. Genera una vista previa de 2 capítulos del informe "'+selRep.name+'" para '+nombre+', nacida el '+fecha+' a las '+hora+' en '+ciudad+'.
-
-POSICIONES PLANETARIAS REALES:
-'+planetStr+'
-
-EXTRACTOS DEL MANUAL DE ASTROLOGÍA:
-'+kbBundle.substring(0,10000)+'
-
-FORMATO OBLIGATORIO:
-## Capítulo 1: [Título]
-### [Planeta] en [Signo]
-[texto 2-3 párrafos]
-### [Planeta] en casa [N]
-[texto]
-
-## Capítulo 2: [Título]
-### [Planeta] en [Signo]
-[texto]
-
-Solo 2 capítulos. Cálido y personalizado para '+nombre+'.';
+    const prompt='Eres una astróloga experta. Genera una vista previa de 2 capítulos del informe "'+selRep.name+'" para '+nombre+', nacida el '+fecha+' a las '+hora+' en '+ciudad+'.\n\nPOSICIONES PLANETARIAS REALES:\n'+planetStr+'\n\nEXTRACTOS DEL MANUAL DE ASTROLOGÍA:\n'+kbBundle.substring(0,10000)+'\n\nFORMATO OBLIGATORIO:\n## Capítulo 1: [Título]\n### [Planeta] en [Signo]\n[texto 2-3 párrafos]\n### [Planeta] en casa [N]\n[texto]\n\n## Capítulo 2: [Título]\n### [Planeta] en [Signo]\n[texto]\n\nSolo 2 capítulos. Cálido y personalizado para '+nombre+'.';
     const cRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
     const cData=await cRes.json();
     const txt=cData.content&&cData.content[0]?cData.content[0].text:'';
@@ -417,48 +378,7 @@ async function acceder(){
   const planetStr=pData.slice(0,14).map(p=>(PLANET_ES[p.name]||p.name)+': '+(SIGN_ES[p.sign]||p.sign)+' '+Math.floor(p.position)+'°'+(p.isRetrograde?' (Rx)':'')+', Casa '+(p.house||'?')).join('
 ');
   try{
-    const prompt='Eres una astróloga experta con el Manual de Astrología de Sakoian y Acker.
-
-CONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'
-
-POSICIONES REALES:
-'+planetStr+'
-
-MANUAL (usa como fuente):
-'+kbBundle.substring(0,18000)+'
-
-FORMATO OBLIGATORIO:
-## Capítulo 1: [Sol, identidad]
-### Sol en [Signo]
-[texto 2-3 párrafos]
-### Sol en casa [N]
-[texto]
-### Sol en aspecto [tipo] a [Planeta]     orbe X° Y'
-[texto]
-
-## Capítulo 2: [Luna, emociones]
-### Luna en [Signo]
-[texto]
-### Luna en casa [N]
-[texto]
-
-## Capítulo 3: [Mercurio, Venus]
-### Mercurio en [Signo]
-[texto]
-### Venus en [Signo]
-[texto]
-
-## Capítulo 4: [Marte, Júpiter]
-### Marte en [Signo]
-[texto]
-### Júpiter en [Signo]
-[texto]
-
-## Capítulo 5: [Saturno, propósito]
-### Saturno en [Signo]
-[texto]
-
-Mínimo 150 palabras por bloque. Cálido e íntimo para '+nombre+'.';
+    const prompt='Eres una astróloga experta con el Manual de Astrología de Sakoian y Acker.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\n\nPOSICIONES REALES:\n'+planetStr+'\n\nMANUAL (usa como fuente):\n'+kbBundle.substring(0,18000)+'\n\nFORMATO OBLIGATORIO:\n## Capítulo 1: [Sol, identidad]\n### Sol en [Signo]\n[texto 2-3 párrafos]\n### Sol en casa [N]\n[texto]\n### Sol en aspecto [tipo] a [Planeta]     orbe X° Y'\n[texto]\n\n## Capítulo 2: [Luna, emociones]\n### Luna en [Signo]\n[texto]\n### Luna en casa [N]\n[texto]\n\n## Capítulo 3: [Mercurio, Venus]\n### Mercurio en [Signo]\n[texto]\n### Venus en [Signo]\n[texto]\n\n## Capítulo 4: [Marte, Júpiter]\n### Marte en [Signo]\n[texto]\n### Júpiter en [Signo]\n[texto]\n\n## Capítulo 5: [Saturno, propósito]\n### Saturno en [Signo]\n[texto]\n\nMínimo 150 palabras por bloque. Cálido e íntimo para '+nombre+'.';
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3500,messages:[{role:'user',content:prompt}]})});
     const d=await r.json();
     const txt=d.content&&d.content[0]?d.content[0].text:'';
