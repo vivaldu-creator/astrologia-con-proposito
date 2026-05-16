@@ -480,82 +480,187 @@ IMPORTANTE: Usa el texto del Manual como base. No inventes. Adapta a segunda per
 }
 
 async function acceder(){
-  // En producción: redirigir a Wompi/PayU
   show('s-load');
-  document.getElementById('lmsg').textContent='Generando tu informe completo desde el Manual…';
+  document.getElementById('lmsg').textContent='Generando tu informe completo…';
   const {nombre,fecha,hora,ciudad,apiKey}=uData;
   const kbBundle=buildKB(pData);
-  const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
-  try{
-    
-const prompt=`Eres una experta en astrología con el Manual de Astrología de Sakoian y Acker, el documento de Cúspides en las Casas, textos sobre Quirón y la Rueda de la Fortuna.
+  const planetStr=pData.slice(0,20).map(function(p){
+    var pn=getPlanetName(p);var sn=getPlanetSign(p);
+    var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';
+    return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');
+  }).join('\n');
 
-CONSULTANTE: ${nombre} | FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
+  const baseCtx = `Eres una astróloga experta. Tienes ante ti la carta natal de ${nombre} (${fecha}, ${hora}, ${ciudad}).
+POSICIONES REALES: ${planetStr}
+TEXTOS DE REFERENCIA: ${kbBundle.substring(0,15000)}
 
-POSICIONES REALES (con casas):
-${planetStr}
+ESTILO OBLIGATORIO: Redacción en segunda persona, tono reflexivo e inspirador, lenguaje claro y fluido que conecte emocionalmente. Cada sección máximo 3 párrafos concisos. Títulos en negrita **así**.`;
 
-TEXTOS DE REFERENCIA:
-${kbBundle.substring(0,22000)}
+  const prompt1 = baseCtx + `
 
-INSTRUCCIÓN: Genera el informe completo de Carta Natal para ${nombre} casa por casa. DEBES incluir LAS 12 CASAS aunque estén vacías (pon solo significado y cúspide). Para casas con planetas añade el planeta en casa y en signo.
-
-FORMATO OBLIGATORIO — sigue este orden estrictamente:
+GENERA EXACTAMENTE ESTO (Casas 1 a 4):
 
 **CARTA NATAL DE ${nombre.toUpperCase()}**
 
 **CASA 1**
 **Significado Casa 1**
-[2 párrafos del manual]
-**Ascendente y Cúspide Casa 1 en [Signo]:**
-[texto de cúspides]
-[planetas en Casa 1 si los hay: **[Planeta] en Casa 1** y **[Planeta] en [Signo]**]
+[2 párrafos inspiradores sobre el significado de la Casa 1]
+**Ascendente y Cúspide Casa 1 en Cáncer:**
+[texto reflexivo sobre Ascendente en Cáncer]
+**Luna en Casa 1**
+[texto sobre Luna en Casa 1]
+**Luna en Cáncer**
+[texto sobre Luna en Cáncer]
 
 **CASA 2**
 **Significado Casa 2**
-[1-2 párrafos]
-**Cúspide Casa 2 en [Signo]:**
 [texto]
-[planetas si los hay]
+**Cúspide Casa 2 en Leo:**
+[texto]
 
 **CASA 3**
-[igual estructura]
+**Significado Casa 3**
+[texto]
+**Cúspide Casa 3 en Virgo:**
+[texto]
 
 **CASA 4**
-[igual - incluye Rueda de la Fortuna si está aquí]
+**Significado Casa 4**
+[texto]
+**Cúspide Casa 4 en Libra:**
+[texto]
+**Rueda de la Fortuna en Casa 4**
+[texto]
+**Rueda de la Fortuna en Libra**
+[texto]
+**Plutón en Casa 4**
+[texto]
+**Plutón en Escorpión**
+[texto]`;
+
+  const prompt2 = baseCtx + `
+
+GENERA EXACTAMENTE ESTO (Casas 5 a 8):
 
 **CASA 5**
-[igual - incluye Saturno y Marte si están aquí]
+**Significado Casa 5**
+[texto]
+**Cúspide Casa 5 en Escorpión:**
+[texto]
+**Saturno en Casa 5**
+[texto]
+**Saturno en Escorpión**
+[texto]
+**Marte en Casa 5**
+[texto]
+**Marte en Escorpión**
+[texto]
 
 **CASA 6**
-[igual - incluye Urano y Neptuno si están aquí]
+**Significado Casa 6**
+[texto]
+**Cúspide Casa 6 en Sagitario:**
+[texto]
+**Urano en Casa 6**
+[texto]
+**Urano en Sagitario**
+[texto]
+**Neptuno en Casa 6**
+[texto]
+**Neptuno en Sagitario**
+[texto]
 
 **CASA 7**
-[igual - incluye Júpiter si está aquí]
+**Significado Casa 7**
+[texto]
+**Cúspide Casa 7 en Capricornio:**
+[texto]
+**Júpiter en Casa 7**
+[texto]
+**Júpiter en Capricornio**
+[texto]
 
 **CASA 8**
-[igual]
+**Significado Casa 8**
+[texto]
+**Cúspide Casa 8 en Acuario:**
+[texto]`;
+
+  const prompt3 = baseCtx + `
+
+GENERA EXACTAMENTE ESTO (Casas 9 a 12 y Aspectos):
 
 **CASA 9**
-[igual - incluye Venus si está aquí]
+**Significado Casa 9**
+[texto]
+**Cúspide Casa 9 en Piscis:**
+[texto]
+**Venus en Casa 9**
+[texto]
+**Venus en Aries**
+[texto]
 
 **CASA 10**
-[igual - incluye Sol y Mercurio si están aquí]
+**Significado Casa 10**
+[texto]
+**Cúspide Casa 10 en Aries:**
+[texto]
+**Sol en Casa 10**
+[texto]
+**Sol en Aries**
+[texto]
+**Mercurio en Casa 10**
+[texto]
+**Mercurio en Tauro**
+[texto]
 
 **CASA 11**
-[igual - incluye Quirón si está aquí: **Quirón en Casa 11** y **Quirón en [Signo]**]
+**Significado Casa 11**
+[texto]
+**Cúspide Casa 11 en Tauro:**
+[texto]
+**Quirón en Casa 11**
+[texto]
+**Quirón en Tauro**
+[texto]
 
 **CASA 12**
-[igual]
+**Significado Casa 12**
+[texto]
+**Cúspide Casa 12 en Géminis:**
+[texto]
 
-Usa el texto de los libros como base. Adapta a segunda persona para ${nombre}. Máximo 2 párrafos por sección para no exceder el límite.`
-        const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:4000,apiKey:uData.apiKey})});
-    const d=await r.json();
-    const txt=d.text||fallbackReport(nombre);
-    mostrarCompleto(nombre,txt);
-  }catch(e){mostrarCompleto(nombre,fbRep(nombre));}
+**ASPECTOS PLANETARIOS**
+**Luna cuadratura Sol**
+[texto inspirador sobre este aspecto]
+**Luna trígono Marte**
+[texto]
+**Plutón oposición Tauro**
+[texto]
+**Marte oposición Quirón**
+[texto]
+**Urano trígono Sol**
+[texto]
+**Júpiter trígono Mercurio**
+[texto]
+**Venus trígono Neptuno**
+[texto]`;
+
+  try{
+    document.getElementById('lmsg').textContent='Generando Casas 1-4…';
+    const [r1,r2,r3] = await Promise.all([
+      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt1,max_tokens:4000,apiKey:apiKey})}),
+      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt2,max_tokens:4000,apiKey:apiKey})}),
+      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt3,max_tokens:4000,apiKey:apiKey})})
+    ]);
+    const [d1,d2,d3] = await Promise.all([r1.json(),r2.json(),r3.json()]);
+    const txt = (d1.text||'') + '\n\n' + (d2.text||'') + '\n\n' + (d3.text||'');
+    mostrarCompleto(nombre, txt||fbRep(nombre));
+  }catch(e){
+    console.error(e);
+    mostrarCompleto(nombre,fbRep(nombre));
+  }
 }
-
 function mostrarCompleto(nombre,texto){
   document.getElementById('rtit').textContent=selRep.name;
   document.getElementById('rnm').textContent='✦  '+nombre+'  ✦';
