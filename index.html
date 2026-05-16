@@ -470,7 +470,7 @@ async function acceder(){
 
   const p2=base+'\n\nGENERA CASAS 5-8:\n\n**CASA 5**\n**Significado Casa 5**\n[texto]\n**Cúspide Casa 5 en Escorpión:**\n[texto]\n**Saturno en Casa 5**\n[texto]\n**Saturno en Escorpión**\n[texto]\n**Marte en Casa 5**\n[texto]\n**Marte en Escorpión**\n[texto]\n\n**CASA 6**\n**Significado Casa 6**\n[texto]\n**Cúspide Casa 6 en Sagitario:**\n[texto]\n**Urano en Casa 6**\n[texto]\n**Urano en Sagitario**\n[texto]\n**Neptuno en Casa 6**\n[texto]\n**Neptuno en Sagitario**\n[texto]\n\n**CASA 7**\n**Significado Casa 7**\n[texto]\n**Cúspide Casa 7 en Capricornio:**\n[texto]\n**Júpiter en Casa 7**\n[texto]\n**Júpiter en Capricornio**\n[texto]\n\n**CASA 8**\n**Significado Casa 8**\n[texto]\n**Cúspide Casa 8 en Acuario:**\n[texto]';
 
-  const p3=base+'\n\nGENERA CASAS 9-12 Y ASPECTOS:\n\n**CASA 9**\n**Significado Casa 9**\n[texto]\n**Cúspide Casa 9 en Piscis:**\n[texto]\n**Venus en Casa 9**\n[texto]\n**Venus en Aries**\n[texto]\n\n**CASA 10**\n**Significado Casa 10**\n[texto]\n**Cúspide Casa 10 en Aries:**\n[texto]\n**Sol en Casa 10**\n[texto]\n**Sol en Aries**\n[texto]\n**Mercurio en Casa 10**\n[texto]\n**Mercurio en Tauro**\n[texto]\n\n**CASA 11**\n**Significado Casa 11**\n[texto]\n**Cúspide Casa 11 en Tauro:**\n[texto]\n**Quirón en Casa 11**\n[texto]\n**Quirón en Tauro**\n[texto]\n\n**CASA 12**\n**Significado Casa 12**\n[texto]\n**Cúspide Casa 12 en Géminis:**\n[texto]\n\n**ASPECTOS PLANETARIOS**\n**Luna cuadratura Sol**\n[texto]\n**Luna trígono Marte**\n[texto]\n**Plutón oposición Tauro**\n[texto]\n**Marte oposición Quirón**\n[texto]\n**Urano trígono Sol**\n[texto]\n**Júpiter trígono Mercurio**\n[texto]\n**Venus trígono Neptuno**\n[texto]';
+  const p3=base+'\n\nGENERA CASAS 9-12 Y ASPECTOS:\n\n**CASA 9**\n**Significado Casa 9**\n[texto]\n**Cúspide Casa 9 en Piscis:**\n[texto]\n**Venus en Casa 9**\n[texto]\n**Venus en Aries**\n[texto]\n\n**CASA 10**\n**Significado Casa 10**\n[texto]\n**Cúspide Casa 10 en Aries:**\n[texto]\n**Sol en Casa 10**\n[texto]\n**Sol en Aries**\n[texto]\n**Mercurio en Casa 10**\n[texto]\n**Mercurio en Tauro**\n[texto]\n\n**CASA 11**\n**Significado Casa 11**\n[texto]\n**Cúspide Casa 11 en Tauro:**\n[texto]\n**Quirón en Casa 11**\n[texto]\n**Quirón en Tauro**\n[texto]\n\n**CASA 12**\n**Significado Casa 12**\n[texto]\n**Cúspide Casa 12 en Géminis:**\n[texto]\n\n**ASPECTOS PLANETARIOS**\n**Luna cuadratura Sol**\n[texto]\n**Luna trígono Marte**\n[texto]\n**Plutón oposición Tauro**\n[texto]\n**Marte oposición Quirón**\n[texto]\n**Urano trígono Sol**\n[texto completo, mínimo 3 párrafos]\n**Júpiter trígono Mercurio**\n[texto completo, mínimo 2 párrafos]\n**Venus trígono Neptuno**\n[texto completo, mínimo 2 párrafos]\n\nIMPORTANTE: Completa TODOS los aspectos sin cortar. Termina con un párrafo de cierre inspirador para Viviana.';
 
   try{
     const [r1,r2,r3]=await Promise.all([
@@ -495,13 +495,34 @@ function mostrarCompleto(nombre,texto){
 function fbRep(n){return `CAPÍTULO 1: El Mapa del Alma\n${n}, tu carta natal revela una historia única tejida por los astros en el momento exacto de tu llegada al mundo.\n\nCAPÍTULO 2: Las Mareas Emocionales\nTu Luna describe la forma en que procesas las emociones y buscas seguridad interior.\n\nCAPÍTULO 3: La Máscara y el Ser\nTu Ascendente es la puerta de entrada a tu personalidad proyectada al mundo.\n\nCAPÍTULO 4: El Corazón y el Deseo\nVenus y Marte en tu carta hablan de cómo amas y qué te impulsa a actuar.\n\nCAPÍTULO 5: El Propósito y el Camino\n${n}, Júpiter y Saturno trazan el arco de tu crecimiento y madurez a lo largo de la vida.`;}
 
 function parseReportHTML(text){
-  if(!text)return '<p style="text-align:center;color:var(--ts);padding:2rem;">Generando...</p>';
+  if(!text) return '<p style="text-align:center;color:var(--ts);padding:2rem;">Generando...</p>';
   let html='';
-  for(const line of text.split('\n')){
-    const t=line.trim();if(!t)continue;
-    if(t.startsWith('**')&&t.endsWith('**')&&t.length>4){html+='<div class="planet-block-title">'+t.slice(2,-2)+'</div>';}
-    else if(t.startsWith('## ')){html+='<div class="report-chapter-title">'+t.slice(3)+'</div>';}
-    else{html+='<div class="planet-block-text">'+t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')+'</div>';}
+  for(const rawLine of text.split('\n')){
+    const t=rawLine.trim();
+    if(!t) continue;
+    // Skip separators and markdown artifacts
+    if(t==='---'||t==='***'||t==='**'||t==='##'||t==='#') continue;
+    // Skip "# CARTA NATAL DE..." header lines
+    if(t.startsWith('# CARTA NATAL')||t.startsWith('# CASAS')) continue;
+    // Chapter box: **CASA N** or **ASPECTOS PLANETARIOS**
+    if(t.startsWith('**')&&t.endsWith('**')&&t.length>4){
+      html+='<div class="report-chapter-title">'+t.slice(2,-2)+'</div>';
+    }
+    // Subheading: ### Texto or **Texto** inline
+    else if(t.startsWith('### ')){
+      html+='<div class="planet-block-title">'+t.slice(4)+'</div>';
+    }
+    else if(t.startsWith('## ')){
+      html+='<div class="planet-block-title">'+t.slice(3)+'</div>';
+    }
+    else if(t.startsWith('# ')){
+      // Skip top-level headers
+    }
+    else{
+      // Regular text - process inline bold
+      const processed=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+      html+='<div class="planet-block-text">'+processed+'</div>';
+    }
   }
   return html;
 }
