@@ -464,13 +464,13 @@ async function acceder(){
     return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+rx+', Casa '+(p.house||'?');
   }).join('\n');
 
-  const base='Eres una astróloga experta. Carta natal de '+nombre+' ('+fecha+', '+hora+', '+ciudad+').\nPOSICIONES: '+planetStr+'\nFUENTE LIBROS:\n'+kbBundle.substring(0,12000)+'\nESTILO: Segunda persona, reflexivo e inspirador, lenguaje cálido y fluido que conecte emocionalmente. Máximo 2-3 párrafos por sección. Títulos en **negrita**.';
+  const base='Eres una astróloga experta. Generas informes de carta natal en español con tono reflexivo, inspirador y emocionalmente conectado. Usas lenguaje claro, fluido y cálido. Cada sección máximo 2 párrafos concisos. Sin markdown, sin asteriscos en el texto.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES: '+planetStr+'\nFUENTE: '+kbBundle.substring(0,12000);
 
-  const p1=base+'\n\nGENERA CASAS 1-4:\n\n**CARTA NATAL DE '+nombre.toUpperCase()+'**\n\n**CASA 1**\n### Significado Casa 1\n[texto inspirador]\n### Ascendente y Cúspide Casa 1 en Cáncer:\n[texto]\n### Luna en Casa 1\n[texto]\n### Luna en Cáncer\n[texto]\n\n**CASA 2**\n### Significado Casa 2\n[texto]\n### Cúspide Casa 2 en Leo:\n[texto]\n\n**CASA 3**\n### Significado Casa 3\n[texto]\n### Cúspide Casa 3 en Virgo:\n[texto]\n\n**CASA 4**\n### Significado Casa 4\n[texto]\n### Cúspide Casa 4 en Libra:\n[texto]\n### Rueda de la Fortuna en Casa 4\n[texto]\n### Rueda de la Fortuna en Libra\n[texto]\n### Plutón en Casa 4\n[texto]\n### Plutón en Escorpión\n[texto]';
+  const p1=base+'\n\nGENERA EXACTAMENTE este bloque. Usa SOLO estos encabezados sin asteriscos ni símbolos:\n\nCASA 1\n### Significado Casa 1\n[2 párrafos inspiradores]\n### Ascendente y Cúspide Casa 1 en Cáncer:\n[texto]\n### Luna en Casa 1\n[texto]\n### Luna en Cáncer\n[texto]\n\nCASA 2\n### Significado Casa 2\n[texto]\n### Cúspide Casa 2 en Leo:\n[texto]\n\nCASA 3\n### Significado Casa 3\n[texto]\n### Cúspide Casa 3 en Virgo:\n[texto]\n\nCASA 4\n### Significado Casa 4\n[texto]\n### Cúspide Casa 4 en Libra:\n[texto]\n### Rueda de la Fortuna en Casa 4\n[texto]\n### Rueda de la Fortuna en Libra\n[texto]\n### Plutón en Casa 4\n[texto]\n### Plutón en Escorpión\n[texto]';
 
-  const p2=base+'\n\nGENERA CASAS 5-8:\n\n**CASA 5**\n### Significado Casa 5\n[texto]\n### Cúspide Casa 5 en Escorpión:\n[texto]\n### Saturno en Casa 5\n[texto]\n### Saturno en Escorpión\n[texto]\n### Marte en Casa 5\n[texto]\n### Marte en Escorpión\n[texto]\n\n**CASA 6**\n### Significado Casa 6\n[texto]\n### Cúspide Casa 6 en Sagitario:\n[texto]\n### Urano en Casa 6\n[texto]\n### Urano en Sagitario\n[texto]\n### Neptuno en Casa 6\n[texto]\n### Neptuno en Sagitario\n[texto]\n\n**CASA 7**\n### Significado Casa 7\n[texto]\n### Cúspide Casa 7 en Capricornio:\n[texto]\n### Júpiter en Casa 7\n[texto]\n### Júpiter en Capricornio\n[texto]\n\n**CASA 8**\n### Significado Casa 8\n[texto]\n### Cúspide Casa 8 en Acuario:\n[texto]';
+  const p2=base+'\n\nGENERA EXACTAMENTE este bloque. Usa SOLO estos encabezados sin asteriscos ni símbolos:\n\nCASA 5\n### Significado Casa 5\n[texto]\n### Cúspide Casa 5 en Escorpión:\n[texto]\n### Saturno en Casa 5\n[texto]\n### Saturno en Escorpión\n[texto]\n### Marte en Casa 5\n[texto]\n### Marte en Escorpión\n[texto]\n\nCASA 6\n### Significado Casa 6\n[texto]\n### Cúspide Casa 6 en Sagitario:\n[texto]\n### Urano en Casa 6\n[texto]\n### Urano en Sagitario\n[texto]\n### Neptuno en Casa 6\n[texto]\n### Neptuno en Sagitario\n[texto]\n\nCASA 7\n### Significado Casa 7\n[texto]\n### Cúspide Casa 7 en Capricornio:\n[texto]\n### Júpiter en Casa 7\n[texto]\n### Júpiter en Capricornio\n[texto]\n\nCASA 8\n### Significado Casa 8\n[texto]\n### Cúspide Casa 8 en Acuario:\n[texto]';
 
-  const p3=base+'\n\nGENERA CASAS 9-12 Y ASPECTOS:\n\n**CASA 9**\n### Significado Casa 9\n[texto]\n### Cúspide Casa 9 en Piscis:\n[texto]\n### Venus en Casa 9\n[texto]\n### Venus en Aries\n[texto]\n\n**CASA 10**\n### Significado Casa 10\n[texto]\n### Cúspide Casa 10 en Aries:\n[texto]\n### Sol en Casa 10\n[texto]\n### Sol en Aries\n[texto]\n### Mercurio en Casa 10\n[texto]\n### Mercurio en Tauro\n[texto]\n\n**CASA 11**\n### Significado Casa 11\n[texto]\n### Cúspide Casa 11 en Tauro:\n[texto]\n### Quirón en Casa 11\n[texto]\n### Quirón en Tauro\n[texto]\n\n**CASA 12**\n### Significado Casa 12\n[texto]\n### Cúspide Casa 12 en Géminis:\n[texto]\n\n**ASPECTOS PLANETARIOS**\n### Luna cuadratura Sol\n[texto]\n### Luna trígono Marte\n[texto]\n### Plutón oposición Tauro\n[texto]\n### Marte oposición Quirón\n[texto]\n### Urano trígono Sol\n[texto completo, mínimo 3 párrafos]\n### Júpiter trígono Mercurio\n[texto completo, mínimo 2 párrafos]\n### Venus trígono Neptuno\n[texto completo, mínimo 2 párrafos]\n\nIMPORTANTE: Escribe TODOS los aspectos completos. Cada aspecto mínimo 2 párrafos. NO cortes el texto. Termina con: ### Cierre\n[párrafo final inspirador para Viviana]';
+  const p3=base+'\n\nGENERA EXACTAMENTE este bloque. Usa SOLO estos encabezados sin asteriscos ni símbolos:\n\nCASA 9\n### Significado Casa 9\n[texto]\n### Cúspide Casa 9 en Piscis:\n[texto]\n### Venus en Casa 9\n[texto]\n### Venus en Aries\n[texto]\n\nCASA 10\n### Significado Casa 10\n[texto]\n### Cúspide Casa 10 en Aries:\n[texto]\n### Sol en Casa 10\n[texto]\n### Sol en Aries\n[texto]\n### Mercurio en Casa 10\n[texto]\n### Mercurio en Tauro\n[texto]\n\nCASA 11\n### Significado Casa 11\n[texto]\n### Cúspide Casa 11 en Tauro:\n[texto]\n### Quirón en Casa 11\n[texto]\n### Quirón en Tauro\n[texto]\n\nCASA 12\n### Significado Casa 12\n[texto]\n### Cúspide Casa 12 en Géminis:\n[texto]\n\nASPECTOS PLANETARIOS\n### Luna cuadratura Sol\n[2 párrafos]\n### Luna trígono Marte\n[2 párrafos]\n### Plutón oposición Mercurio\n[2 párrafos]\n### Marte oposición Quirón\n[2 párrafos]\n### Urano trígono Sol\n[2 párrafos]\n### Júpiter trígono Mercurio\n[2 párrafos]\n### Venus trígono Neptuno\n[2 párrafos]\n\nIMPORTANTE: Escribe TODOS los bloques completos. No cortes el texto.';
 
   try{
     const [r1,r2,r3]=await Promise.all([
@@ -500,31 +500,32 @@ function parseReportHTML(text){
   for(const rawLine of text.split('\n')){
     const t=rawLine.trim();
     if(!t) continue;
-    // Skip separators and markdown artifacts
+    // Skip junk
     if(t==='---'||t==='***'||t==='**'||t==='##'||t==='#') continue;
-    if(t.startsWith('# CARTA NATAL')||t.startsWith('# CASAS')) continue;
+    if(/^#+ CARTA NATAL/.test(t)||/^#+ CASAS/.test(t)) continue;
 
-    // CASA N or ASPECTOS PLANETARIOS → franja destacada principal
-    if(t.startsWith('**CASA ')||t==='**ASPECTOS PLANETARIOS**'||t.startsWith('**ASPECTOS')){
-      html+='<div class="report-chapter-title">'+t.replace(/\*\*/g,'')+'</div>';
+    // CASA N (with or without **) → highlighted box
+    if(/^\*{0,2}CASA \d+\*{0,2}$/.test(t)||/^\*{0,2}ASPECTOS PLANETARIOS\*{0,2}$/.test(t)){
+      const clean=t.replace(/\*/g,'');
+      html+='<div class="report-chapter-title">'+clean+'</div>';
     }
-    // ### Subtítulos → subtítulo secundario
+    // ### or ** subtitles → subtitle
     else if(t.startsWith('### ')){
-      html+='<div class="planet-block-title">'+t.slice(4)+'</div>';
+      html+='<div class="planet-block-title">'+t.slice(4).replace(/\*/g,'')+'</div>';
     }
     else if(t.startsWith('## ')){
-      html+='<div class="planet-block-title">'+t.slice(3)+'</div>';
+      html+='<div class="planet-block-title">'+t.slice(3).replace(/\*/g,'')+'</div>';
     }
     else if(t.startsWith('# ')){
-      // skip top-level headers
+      // skip
     }
-    // **Texto** en línea sola → subtítulo secundario
-    else if(t.startsWith('**')&&t.endsWith('**')&&t.length>4&&!t.slice(2,-2).includes('\n')){
-      html+='<div class="planet-block-title">'+t.slice(2,-2)+'</div>';
+    else if(/^\*\*[^*]+\*\*:?$/.test(t)){
+      // **Subtitle** alone on a line → subtitle
+      html+='<div class="planet-block-title">'+t.replace(/\*/g,'').replace(/:$/,'')+'</div>';
     }
-    // Texto normal
     else{
-      const processed=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+      // Normal text - clean remaining ** and render
+      const processed=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*\*/g,'');
       html+='<div class="planet-block-text">'+processed+'</div>';
     }
   }
