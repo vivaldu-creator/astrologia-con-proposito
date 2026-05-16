@@ -558,39 +558,46 @@ function fbRep(n){return `CAPÍTULO 1: El Mapa del Alma\n${n}, tu carta natal re
 
 function parseReportHTML(text){
   if(!text) return '<p style="text-align:center;color:var(--ts);padding:2rem;">Generando...</p>';
+  
+  // Pre-process: ensure CASA N and ASPECTOS always start on their own line
+  text = text.replace(/(CASA \d{1,2})/g, '\n$1\n');
+  text = text.replace(/(ASPECTOS PLANETARIOS)/g, '\n$1\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  
   let html='';
   for(const rawLine of text.split('\n')){
     const t=rawLine.trim();
     if(!t) continue;
     if(t==='---'||t==='***'||t==='**') continue;
-    if(/^#{1,3} ?CARTA NATAL/.test(t)||/^#{1,3} ?CASAS \d/.test(t)) continue;
+    if(/^#{1,3}\s*CARTA NATAL/.test(t)||/^#{1,3}\s*CASAS \d/.test(t)) continue;
 
-    // Detect CASA N in ANY format Claude might output:
-    // "CASA 1", "## CASA 1", "### CASA 1", "**CASA 1**", "CASA 1:", etc.
-    const casaMatch=t.replace(/^[#*\s]+/,'').replace(/[*:]+$/,'').trim();
-    if(/^CASA \d{1,2}$/.test(casaMatch)||casaMatch==='ASPECTOS PLANETARIOS'||casaMatch==='ASPECTOS'){
-      html+='<div class="report-chapter-title">'+casaMatch+'</div>';
+    // Clean version for matching (remove # and *)
+    const clean = t.replace(/^[#\*\s]+/,'').replace(/[\*:]+$/,'').trim();
+
+    // CASA N or ASPECTOS → highlighted box
+    if(/^CASA \d{1,2}$/.test(clean) || clean==='ASPECTOS PLANETARIOS' || clean==='ASPECTOS'){
+      html += '<div class="report-chapter-title">'+clean+'</div>';
       continue;
     }
 
-    // ### or ## = subtitle
+    // ### subtítulo → subtitle div
     if(t.startsWith('### ')){
-      html+='<div class="planet-block-title">'+t.slice(4).replace(/[*:]+$/,'').replace(/\*/g,'')+'</div>';
+      html += '<div class="planet-block-title">'+t.slice(4).replace(/[\*:]+$/,'').replace(/\*/g,'')+'</div>';
     }
     else if(t.startsWith('## ')){
-      html+='<div class="planet-block-title">'+t.slice(3).replace(/[*:]+$/,'').replace(/\*/g,'')+'</div>';
+      html += '<div class="planet-block-title">'+t.slice(3).replace(/[\*:]+$/,'').replace(/\*/g,'')+'</div>';
     }
     else if(t.startsWith('# ')){
-      // skip
+      // skip top-level headers
     }
-    // Lone **Subtitle** or **Subtitle:** line
+    // **Subtitle** on its own → subtitle
     else if(/^\*\*[^*\n]+\*\*:?$/.test(t)){
-      html+='<div class="planet-block-title">'+t.replace(/\*/g,'').replace(/:$/,'')+'</div>';
+      html += '<div class="planet-block-title">'+t.replace(/\*/g,'').replace(/:$/,'')+'</div>';
     }
-    // Normal text
+    // Normal paragraph
     else{
-      const processed=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*\*/g,'');
-      html+='<div class="planet-block-text">'+processed+'</div>';
+      const processed = t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*\*/g,'');
+      html += '<div class="planet-block-text">'+processed+'</div>';
     }
   }
   return html;
