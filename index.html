@@ -376,20 +376,20 @@ async function genPreview(){
     // Build KB bundle for this chart
     const kbBundle = buildKB(pData);
     const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
-    const prompt=`Eres una astróloga experta. Tienes ante ti el Manual de Astrología de Frances Sakoian y Louis Acker, y los datos de carta natal de ${nombre}.
+    const prompt="Eres una astróloga experta. Tienes ante ti el Manual de Astrología de Frances Sakoian y Louis Acker, y los datos de carta natal de "+nombre+".
 
 POSICIONES PLANETARIAS REALES:
-${planetStr}
+"+planetStr+"
 
 EXTRACTOS DEL MANUAL DE ASTROLOGÍA (tu fuente de interpretación):
-${kbBundle.substring(0,12000)}
+"+kbBundle.substring(0,12000)+"
 
-TAREA: Genera una vista previa de 2 párrafos (máximo 220 palabras) para el informe "${selRep.name}" de ${nombre}. 
+TAREA: Genera una vista previa de 2 párrafos (máximo 220 palabras) para el informe ""+selRep.name+"" de "+nombre+". 
 - Basa la interpretación DIRECTAMENTE en el texto del Manual que te di
 - Menciona posiciones específicas (ej: "Tu Sol en Piscis...")
 - Sé cálida, íntima y profunda
 - Termina con "Pero esto es solo el umbral de tu historia astral…"
-- Solo los 2 párrafos, sin títulos ni encabezados`;
+- Solo los 2 párrafos, sin títulos ni encabezados";
     const cRes=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:1500,apiKey:apiKey})});
     const cData=await cRes.json();
     const txt=cData.text||fbPrev(nombre);
@@ -456,24 +456,24 @@ async function acceder(){
   document.getElementById('lmsg').textContent='Generando tu informe completo desde el Manual…';
   const {nombre,fecha,hora,ciudad,apiKey}=uData;
   const kbBundle=buildKB(pData);
-  const planetStr=pData.slice(0,14).map(p=>`${PLANET_ES[p.name]||p.name}: ${SIGN_ES[p.sign]||p.sign} ${Math.floor(p.position)}°${p.isRetrograde?' (Rx)':''}, Casa ${p.house||'?'}`).join('\n');
+  const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
   try{
-    const prompt=`Eres una astróloga experta con el Manual de Astrología de Frances Sakoian y Louis Acker como tu fuente principal.
+    const prompt="Eres una astróloga experta con el Manual de Astrología de Frances Sakoian y Louis Acker como tu fuente principal.
 
-CONSULTANTE: ${nombre}
-FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
+CONSULTANTE: "+nombre+"
+FECHA: "+fecha+" | HORA: "+hora+" | LUGAR: "+ciudad+"
 
 POSICIONES PLANETARIAS REALES:
-${planetStr}
+"+planetStr+"
 
 EXTRACTOS DEL MANUAL DE ASTROLOGÍA (usa esto como base de interpretación):
-${kbBundle.substring(0,18000)}
+"+kbBundle.substring(0,18000)+"
 
 TAREA: Genera un informe completo de Carta Natal con exactamente 5 capítulos. Para cada capítulo, cita y amplía el contenido del Manual para la posición específica del planeta.
 
 Formato exacto:
 CAPÍTULO 1: [Título — sobre el Sol y la identidad]
-[Interpretación profunda basada en el Manual, 200+ palabras, muy personalizada para ${nombre}]
+[Interpretación profunda basada en el Manual, 200+ palabras, muy personalizada para "+nombre+"]
 
 CAPÍTULO 2: [Título — sobre la Luna y las emociones]
 [...]
@@ -487,7 +487,7 @@ CAPÍTULO 4: [Título — sobre Venus, Marte y relaciones]
 CAPÍTULO 5: [Título — sobre Júpiter, Saturno y el propósito]
 [...]
 
-Usa las citas del Manual como base pero expande con interpretaciones propias. Lenguaje cálido, íntimo y profundo. Siempre menciona a ${nombre} por nombre.`;
+Usa las citas del Manual como base pero expande con interpretaciones propias. Lenguaje cálido, íntimo y profundo. Siempre menciona a "+nombre+" por nombre.";
     const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:3000,apiKey:uData.apiKey})});
     const d=await r.json();
     const txt=d.text||fallbackReport(nombre);
