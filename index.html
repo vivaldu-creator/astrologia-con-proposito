@@ -431,7 +431,22 @@ Solo 2 capítulos. Lenguaje cálido y personalizado para ${nombre}.`
 
 function renderPlanets(id){
   const tb=document.getElementById(id);
-  tb.innerHTML=pData.filter(p=>HOUSE_SHOWN.includes(p.name)).map(p=>`<tr><td><span class="psym">${PICONS[p.name]||'✦'}</span>${PLANET_ES[p.name]||p.name}${p.isRetrograde?'<span class="rx">Rx</span>':''}</td><td>${SIGN_ES[p.sign]||p.sign}</td><td>${Math.floor(p.position)}°${Math.floor((p.position%1)*60)}'</td><td>${p.house||'-'}</td></tr>`).join('');
+  if(!tb){console.error('renderPlanets: element not found:', id);return;}
+  if(!pData||!pData.length){
+    tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--ts);padding:.8rem;font-size:.8rem;">Calculando posiciones...</td></tr>';
+    return;
+  }
+  const rows=pData.filter(p=>HOUSE_SHOWN.includes(p.name)).map(function(p){
+    const icon=PICONS[p.name]||'✦';
+    const name=PLANET_ES[p.name]||p.name;
+    const rx=p.isRetrograde?'<span class="rx">Rx</span>':'';
+    const sign=SIGN_ES[p.sign]||p.sign;
+    const deg=Math.floor(p.position);
+    const min=Math.floor((p.position%1)*60);
+    const house=p.house||'-';
+    return '<tr><td><span class="psym">'+icon+'</span>'+name+rx+'</td><td>'+sign+'</td><td>'+deg+'°'+min+"'</td><td>"+house+'</td></tr>';
+  });
+  tb.innerHTML=rows.join('');
 }
 function renderWheel(id){
   const el=document.getElementById(id);
