@@ -424,7 +424,7 @@ function renderPlanets(id){
     var sign=SIGN_ES[sn]||sn;
     var pos=p.fullDegree||p.position||0;
     var deg=Math.floor(pos%30);var min=Math.floor(((pos%30)%1)*60);
-    var house=p.house||'-';
+    var house=p.house||p.house_id||p.houseId||p.house_number||'-';
     return '<tr><td><span class="psym">'+icon+'</span>'+name+rx+'</td><td>'+sign+'</td><td>'+deg+'°'+min+"'</td><td>"+house+'</td></tr>';
   });
   tb.innerHTML=rows.join('')||'<tr><td colspan="4" style="text-align:center;color:var(--ts);padding:.8rem;">Sin planetas</td></tr>';
@@ -435,71 +435,66 @@ function renderWheel(containerId){
   if(wSVG&&wSVG.trim().startsWith('<svg')){el.innerHTML=wSVG;return;}
   if(wSVG&&wSVG.length>100){el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;border-radius:12px;">';return;}
 
-  const cx=200,cy=200,rOuter=185,rInner=130,rPlanet=105,rCenter=35;
+  const cx=200,cy=200,rOut=185,rMid=140,rIn=95,rCtr=38;
   const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
-  const signNames=['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpión','Sagitario','Capricornio','Acuario','Piscis'];
-  const colors=['#F4C4C4','#E8D4A8','#C8DCF0','#B4D4EC','#F4DCA8','#C8DCA8','#D8C8EC','#C8A8B4','#D8C4A0','#B4C4D8','#C4D8EC','#D8B8D8'];
+  const colors=['#F4C4C4','#E8D4A8','#C8DCF0','#B4D8F0','#F4DCA8','#C8DCA8','#D8C8EC','#C8A8B4','#D8C4A0','#B4C4D8','#C4D8EC','#D8B8D8'];
+  const pMap={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'AC',Chiron:'⚷'};
+  const pCol={Sun:'#D4880A',Moon:'#6060A0',Mercury:'#207820',Venus:'#B04080',Mars:'#C03030',Jupiter:'#6030A0',Saturn:'#706030',Uranus:'#3070B0',Neptune:'#304070',Pluto:'#703060',Ascendant:'#7B5EA7',Chiron:'#706060'};
+  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Ascendant'];
+
+  // In astrology: 0° Aries = right (East), going counterclockwise
+  // SVG: 0° = right, going clockwise
+  // Conversion: svgAngle = -(astroAngle) - 90 or: rad = (-(deg) - 90) * PI/180
+  function degToRad(deg){ return (-(deg) - 90) * Math.PI / 180; }
 
   let s='<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">';
-  s+='<defs><filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/></filter></defs>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rOut+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
 
-  // Background circle
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rOuter+'" fill="white" stroke="#C5B4E3" stroke-width="1.5" filter="url(#shadow)"/>';
-
-  // 12 sign segments (outer ring: rInner to rOuter)
+  // Sign segments
   for(let i=0;i<12;i++){
-    const a1=((i*30)-90)*Math.PI/180;
-    const a2=(((i+1)*30)-90)*Math.PI/180;
-    const am=(a1+a2)/2;
-    // Outer arc path
-    const ox1=cx+rOuter*Math.cos(a1),oy1=cy+rOuter*Math.sin(a1);
-    const ox2=cx+rOuter*Math.cos(a2),oy2=cy+rOuter*Math.sin(a2);
-    const ix1=cx+rInner*Math.cos(a1),iy1=cy+rInner*Math.sin(a1);
-    const ix2=cx+rInner*Math.cos(a2),iy2=cy+rInner*Math.sin(a2);
-    s+='<path d="M'+ix1+','+iy1+' L'+ox1+','+oy1+' A'+rOuter+','+rOuter+' 0 0,1 '+ox2+','+oy2+' L'+ix2+','+iy2+' A'+rInner+','+rInner+' 0 0,0 '+ix1+','+iy1+' Z" fill="'+colors[i]+'" stroke="white" stroke-width="1.2" opacity="0.9"/>';
-    // Sign symbol
-    const rSym=(rOuter+rInner)/2;
-    const xt=cx+rSym*Math.cos(am),yt=cy+rSym*Math.sin(am);
-    s+='<text x="'+xt+'" y="'+(yt+5)+'" text-anchor="middle" font-size="13" fill="#6B4E8B" font-weight="500">'+signs[i]+'</text>';
+    const a1=degToRad(i*30);
+    const a2=degToRad((i+1)*30);
+    const am=degToRad(i*30+15);
+    const ox1=cx+rOut*Math.cos(a1),oy1=cy+rOut*Math.sin(a1);
+    const ox2=cx+rOut*Math.cos(a2),oy2=cy+rOut*Math.sin(a2);
+    const mx1=cx+rMid*Math.cos(a1),my1=cy+rMid*Math.sin(a1);
+    const mx2=cx+rMid*Math.cos(a2),my2=cy+rMid*Math.sin(a2);
+    // Use large arc if needed
+    s+='<path d="M'+mx1+','+my1+' L'+ox1+','+oy1+' A'+rOut+','+rOut+' 0 0,0 '+ox2+','+oy2+' L'+mx2+','+my2+' A'+rMid+','+rMid+' 0 0,1 '+mx1+','+my1+' Z" fill="'+colors[i]+'" stroke="white" stroke-width="1" opacity="0.88"/>';
+    // Sign label
+    const xt=cx+(rOut+rMid)/2*Math.cos(am),yt=cy+(rOut+rMid)/2*Math.sin(am);
+    s+='<text x="'+xt+'" y="'+(yt+5)+'" text-anchor="middle" font-size="13" fill="#5B3E8B">'+signs[i]+'</text>';
+    // Divider
+    s+='<line x1="'+(cx+rMid*Math.cos(a1))+'" y1="'+(cy+rMid*Math.sin(a1))+'" x2="'+(cx+rOut*Math.cos(a1))+'" y2="'+(cy+rOut*Math.sin(a1))+'" stroke="white" stroke-width="1.5"/>';
   }
 
-  // Inner circle (planet area)
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rInner+'" fill="rgba(248,245,255,0.95)" stroke="#C5B4E3" stroke-width="1"/>';
+  // Inner area
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rMid+'" fill="rgba(250,248,255,0.97)" stroke="#C5B4E3" stroke-width="0.8"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'" fill="none" stroke="rgba(197,180,227,0.4)" stroke-width="0.6" stroke-dasharray="3,5"/>';
 
-  // Degree lines (every 30 degrees, from rInner to rOuter)
-  for(let i=0;i<12;i++){
-    const a=((i*30)-90)*Math.PI/180;
-    s+='<line x1="'+(cx+rInner*Math.cos(a))+'" y1="'+(cy+rInner*Math.sin(a))+'" x2="'+(cx+rOuter*Math.cos(a))+'" y2="'+(cy+rOuter*Math.sin(a))+'" stroke="white" stroke-width="1.5"/>';
-  }
-
-  // Planet positions on rPlanet ring
-  const pMap={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'Ac',Chiron:'⚷'};
-  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Ascendant'];
-  const pColors={Sun:'#E8A020',Moon:'#9090C0',Mercury:'#60A060',Venus:'#C060A0',Mars:'#C04040',Jupiter:'#8040C0',Saturn:'#806040',Uranus:'#4080C0',Neptune:'#4060A0',Pluto:'#804080',Ascendant:'#C5B4E3',Chiron:'#806080'};
-
+  // Planets - use fullDegree (0-360, 0=Aries)
   if(pData&&pData.length){
     for(const p of pData){
       const pn=getPlanetName(p);
       if(!shown.includes(pn))continue;
       const deg=p.fullDegree||0;
-      const rad=(deg-90)*Math.PI/180;
-      const px=cx+rPlanet*Math.cos(rad);
-      const py=cy+rPlanet*Math.sin(rad);
-      const col=pColors[pn]||'#9B7EC8';
+      const rad=degToRad(deg);
+      // Place planets between rIn and rMid
+      const pr=(rIn+rMid)/2;
+      const px=cx+pr*Math.cos(rad);
+      const py=cy+pr*Math.sin(rad);
+      const col=pCol[pn]||'#9B7EC8';
       const icon=pMap[pn]||pn[0];
-      // Draw line from inner ring to planet
-      s+='<line x1="'+(cx+rInner*Math.cos(rad))+'" y1="'+(cy+rInner*Math.sin(rad))+'" x2="'+px+'" y2="'+py+'" stroke="'+col+'" stroke-width="0.6" opacity="0.4"/>';
-      // Planet circle + icon
-      s+='<circle cx="'+px+'" cy="'+py+'" r="10" fill="white" stroke="'+col+'" stroke-width="1.5"/>';
+      s+='<line x1="'+(cx+rIn*Math.cos(rad))+'" y1="'+(cy+rIn*Math.sin(rad))+'" x2="'+px+'" y2="'+py+'" stroke="'+col+'" stroke-width="0.7" opacity="0.5"/>';
+      s+='<circle cx="'+px+'" cy="'+py+'" r="11" fill="white" stroke="'+col+'" stroke-width="1.5"/>';
       s+='<text x="'+px+'" y="'+(py+4)+'" text-anchor="middle" font-size="10" fill="'+col+'" font-weight="bold">'+icon+'</text>';
     }
   }
 
-  // Center decorative
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rCenter+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
-  s+='<text x="'+cx+'" y="'+(cy-5)+'" text-anchor="middle" font-size="16" fill="#9B7EC8">✦</text>';
-  s+='<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" font-size="7" fill="#9B7EC8" letter-spacing="1">CARTA</text>';
-  s+='<text x="'+cx+'" y="'+(cy+22)+'" text-anchor="middle" font-size="7" fill="#9B7EC8" letter-spacing="1">NATAL</text>';
+  // Center
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rCtr+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
+  s+='<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-size="18" fill="#9B7EC8">✦</text>';
+  s+='<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" font-size="7" fill="#9B7EC8" letter-spacing="1.5">NATAL</text>';
   s+='</svg>';
   el.innerHTML=s;
 }
