@@ -488,52 +488,68 @@ async function acceder(){
   const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
   try{
     
-const prompt=`Eres una experta en astrología con el Manual de Astrología de Sakoian y Acker y textos complementarios sobre cúspides, Quirón y Rueda de la Fortuna.
+const prompt=`Eres una experta en astrología con el Manual de Astrología de Sakoian y Acker, el documento de Cúspides en las Casas, textos sobre Quirón y la Rueda de la Fortuna.
 
 CONSULTANTE: ${nombre} | FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
 
-POSICIONES PLANETARIAS REALES:
+POSICIONES REALES (con casas):
 ${planetStr}
 
-EXTRACTOS DE LOS LIBROS (usa como fuente):
-${kbBundle.substring(0,20000)}
+TEXTOS DE REFERENCIA:
+${kbBundle.substring(0,22000)}
 
-TAREA: Genera el informe completo de Carta Natal para ${nombre} organizado por casas, con EXACTAMENTE este formato:
+INSTRUCCIÓN: Genera el informe completo de Carta Natal para ${nombre} casa por casa. DEBES incluir LAS 12 CASAS aunque estén vacías (pon solo significado y cúspide). Para casas con planetas añade el planeta en casa y en signo.
 
-**CARTA NATAL ${nombre.toUpperCase()}**
+FORMATO OBLIGATORIO — sigue este orden estrictamente:
+
+**CARTA NATAL DE ${nombre.toUpperCase()}**
 
 **CASA 1**
-
 **Significado Casa 1**
-[texto del manual sobre significado de Casa 1]
-
+[2 párrafos del manual]
 **Ascendente y Cúspide Casa 1 en [Signo]:**
-[texto sobre ascendente en ese signo]
-
-**[Planeta] en Casa 1** (si hay planetas en Casa 1)
-[texto del manual]
-
-**[Planeta] en [Signo]** (signo del planeta)
-[texto del manual]
+[texto de cúspides]
+[planetas en Casa 1 si los hay: **[Planeta] en Casa 1** y **[Planeta] en [Signo]**]
 
 **CASA 2**
-
 **Significado Casa 2**
-[texto]
-
+[1-2 párrafos]
 **Cúspide Casa 2 en [Signo]:**
 [texto]
+[planetas si los hay]
 
-(continúa para todas las casas que tengan planetas o sean relevantes)
+**CASA 3**
+[igual estructura]
 
-Para cada planeta incluye:
-- El planeta en la casa
-- El planeta en su signo
-- Si hay Quirón: Quirón en casa y Quirón en signo
-- Si hay Rueda de la Fortuna: Rueda de la Fortuna en casa y en signo
+**CASA 4**
+[igual - incluye Rueda de la Fortuna si está aquí]
 
-Usa el texto de los libros como base. Adapta a segunda persona para ${nombre}. Sin numeración de capítulos. Solo los títulos en negrita seguidos del texto.`
-        const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:3000,apiKey:uData.apiKey})});
+**CASA 5**
+[igual - incluye Saturno y Marte si están aquí]
+
+**CASA 6**
+[igual - incluye Urano y Neptuno si están aquí]
+
+**CASA 7**
+[igual - incluye Júpiter si está aquí]
+
+**CASA 8**
+[igual]
+
+**CASA 9**
+[igual - incluye Venus si está aquí]
+
+**CASA 10**
+[igual - incluye Sol y Mercurio si están aquí]
+
+**CASA 11**
+[igual - incluye Quirón si está aquí: **Quirón en Casa 11** y **Quirón en [Signo]**]
+
+**CASA 12**
+[igual]
+
+Usa el texto de los libros como base. Adapta a segunda persona para ${nombre}. Máximo 2 párrafos por sección para no exceder el límite.`
+        const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:4000,apiKey:uData.apiKey})});
     const d=await r.json();
     const txt=d.text||fallbackReport(nombre);
     mostrarCompleto(nombre,txt);
