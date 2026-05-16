@@ -371,11 +371,7 @@ async function genPreview(){
     const astroJson=await astroRes.json();
     pData=astroJson.planets||[];
     wSVG=astroJson.wheel||'';
-    const dummy=[null,null);
-    const pJson=await pRes.json();
-    const wJson=await wRes.json();
-    pData=pJson.output||[];
-    wSVG=wJson.svg||wJson.output||'';
+    // data already set from /api/astro above
     clearInterval(iv);
     // Build KB bundle for this chart
     const kbBundle = buildKB(pData);
