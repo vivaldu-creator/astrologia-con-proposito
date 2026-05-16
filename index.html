@@ -376,20 +376,31 @@ async function genPreview(){
     // Build KB bundle for this chart
     const kbBundle = buildKB(pData);
     const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
-    const prompt=`Eres una astróloga experta. Tienes ante ti el Manual de Astrología de Frances Sakoian y Louis Acker, y los datos de carta natal de ${nombre}.
+    const prompt=`Eres una experta en astrología. Tienes el Manual de Astrología de Frances Sakoian y Louis Acker como fuente.
+
+CONSULTANTE: ${nombre} | FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
 
 POSICIONES PLANETARIAS REALES:
 ${planetStr}
 
-EXTRACTOS DEL MANUAL DE ASTROLOGÍA (tu fuente de interpretación):
+EXTRACTOS DEL MANUAL:
 ${kbBundle.substring(0,12000)}
 
-TAREA: Genera una vista previa de 2 párrafos (máximo 220 palabras) para el informe "${selRep.name}" de ${nombre}. 
-- Basa la interpretación DIRECTAMENTE en el texto del Manual que te di
-- Menciona posiciones específicas (ej: "Tu Sol en Piscis...")
-- Sé cálida, íntima y profunda
-- Termina con "Pero esto es solo el umbral de tu historia astral…"
-- Solo los 2 párrafos, sin títulos ni encabezados`;
+TAREA: Genera una vista previa del informe de carta natal para ${nombre} con EXACTAMENTE este formato:
+
+**Sol en [Signo]**
+
+[Copia y adapta el texto del Manual sobre Sol en ese signo, 3-4 párrafos, en segunda persona dirigido a ${nombre}]
+
+**Sol en Casa [N]**
+
+[Copia y adapta el texto del Manual sobre Sol en esa casa, 2-3 párrafos]
+
+**Luna en [Signo]**
+
+[Texto del Manual sobre Luna en ese signo, 3-4 párrafos]
+
+IMPORTANTE: Usa el texto del Manual como base. No inventes. Adapta a segunda persona ("Viviana, tú..." o "Las personas con esta posición..."). Sin numeración de capítulos. Sin títulos creativos. Solo el nombre del planeta/casa en negrita seguido del texto.`;
     const cRes=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:1500,apiKey:apiKey})});
     const cData=await cRes.json();
     const txt=cData.text||fbPrev(nombre);
@@ -459,36 +470,69 @@ async function acceder(){
   const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
   try{
     
-const prompt=`Eres una astróloga experta con el Manual de Astrología de Frances Sakoian y Louis Acker como tu fuente principal.
+const prompt=`Eres una experta en astrología. Tienes el Manual de Astrología de Frances Sakoian y Louis Acker.
 
-CONSULTANTE: ${nombre}
-FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
+CONSULTANTE: ${nombre} | FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
 
 POSICIONES PLANETARIAS REALES:
 ${planetStr}
 
-EXTRACTOS DEL MANUAL DE ASTROLOGÍA (usa esto como base de interpretación):
+EXTRACTOS DEL MANUAL:
 ${kbBundle.substring(0,18000)}
 
-TAREA: Genera un informe completo de Carta Natal con exactamente 5 capítulos. Para cada capítulo, cita y amplía el contenido del Manual para la posición específica del planeta.
+TAREA: Genera el informe completo de carta natal para ${nombre} con EXACTAMENTE este formato (igual al ejemplo de Victoria):
 
-Formato exacto:
-CAPÍTULO 1: [Título — sobre el Sol y la identidad]
-[Interpretación profunda basada en el Manual, 200+ palabras, muy personalizada para ${nombre}]
+**CARTA NATAL ${nombre.toUpperCase()}**
 
-CAPÍTULO 2: [Título — sobre la Luna y las emociones]
-[...]
+**Sol en [Signo]**
+[3-4 párrafos del Manual adaptados a segunda persona para ${nombre}]
 
-CAPÍTULO 3: [Título — sobre el Ascendente y la proyección]
-[...]
+**Sol en Casa [N]**
+[2-3 párrafos del Manual adaptados]
 
-CAPÍTULO 4: [Título — sobre Venus, Marte y relaciones]
-[...]
+**Significado Casa [N]**
+[Descripción de la casa del Manual]
 
-CAPÍTULO 5: [Título — sobre Júpiter, Saturno y el propósito]
-[...]
+**Cúspide Casa [N] en [Signo]:**
+[Texto del Manual]
 
-Usa las citas del Manual como base pero expande con interpretaciones propias. Lenguaje cálido, íntimo y profundo. Siempre menciona a ${nombre} por nombre.`;
+**Luna en [Signo]**
+[3-4 párrafos]
+
+**Luna en Casa [N]**
+[2-3 párrafos]
+
+**Mercurio en [Signo]**
+[texto]
+
+**Mercurio en Casa [N]**
+[texto]
+
+**Venus en [Signo]**
+[texto]
+
+**Venus en Casa [N]**
+[texto]
+
+**Marte en [Signo]**
+[texto]
+
+**Marte en Casa [N]**
+[texto]
+
+**Júpiter en [Signo]**
+[texto]
+
+**Júpiter en Casa [N]**
+[texto]
+
+**Saturno en [Signo]**
+[texto]
+
+**Saturno en Casa [N]**
+[texto]
+
+IMPORTANTE: Usa el texto del Manual como base. Adapta a segunda persona. Sin numeración de capítulos. Sin títulos creativos. Solo el nombre del planeta/signo/casa en negrita seguido del texto del Manual.`;
         const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:3000,apiKey:uData.apiKey})});
     const d=await r.json();
     const txt=d.text||fallbackReport(nombre);
@@ -522,18 +566,18 @@ function parseReportHTML(text){
   for(let i=0;i<lines.length;i++){
     const t=lines[i].trim();
     if(!t) continue;
-    if(t.indexOf('## ')==0){
+    // Bold headers: **Texto** at start of line
+    if(t.startsWith('**') && t.endsWith('**') && t.length > 4){
+      const title=t.slice(2,-2);
+      html+='<div class="planet-block-title">'+title+'</div>';
+    } else if(t.startsWith('## ')){
       html+='<div class="report-chapter-title">'+t.slice(3)+'</div>';
-    } else if(t.indexOf('### ')==0){
-      const body=t.slice(4);
-      const orbeIdx=body.toLowerCase().indexOf('orbe');
-      if(orbeIdx>-1){
-        html+='<div class="aspect-block-title">'+body.substring(0,orbeIdx).trim()+'<span class="aspect-orbe"> '+body.substring(orbeIdx)+'</span></div>';
-      } else {
-        html+='<div class="planet-block-title">'+body+'</div>';
-      }
+    } else if(t.startsWith('# ')){
+      html+='<div class="report-chapter-title" style="font-size:1.2rem;">'+t.slice(2)+'</div>';
     } else {
-      html+='<div class="planet-block-text">'+t+'</div>';
+      // Process inline bold
+      const processed=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+      html+='<div class="planet-block-text">'+processed+'</div>';
     }
   }
   return html;
