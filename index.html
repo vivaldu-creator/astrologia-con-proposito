@@ -432,12 +432,48 @@ function renderPlanets(id){
 function renderWheel(containerId){
   const el=document.getElementById(containerId);
   if(!el)return;
-  if(wSVG&&wSVG.trim().startsWith('<')){el.innerHTML=wSVG;}
-  else if(wSVG&&wSVG.length>10){el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;border-radius:12px;">';}
-  else{
-    var plText=pData.slice(0,6).map(function(p){return (PICONS[getPlanetName(p)]||'✦')+' '+(SIGN_ES[getPlanetSign(p)]||getPlanetSign(p));}).join('  ');
-    el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--li);"><div style="font-size:3rem;margin-bottom:.5rem;">☽</div><p style="font-size:.8rem;color:var(--ts);margin-bottom:.5rem;">Carta natal calculada</p><p style="font-size:.75rem;color:var(--li);line-height:1.8;">'+plText+'</p></div>';
+  if(wSVG&&wSVG.trim().startsWith('<svg')){
+    el.innerHTML=wSVG;return;
   }
+  if(wSVG&&wSVG.length>100){
+    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;border-radius:12px;">';return;
+  }
+  // Beautiful zodiac placeholder SVG
+  const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+  const colors=['#E8C4C4','#D4C4A8','#C4D4E8','#C4E8D4','#E8D4C4','#D4E8C4','#C4C4E8','#E8C4D4','#D4C4E8','#C4D8E8','#C4E8E8','#D4C4D4'];
+  let svgContent='<svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">';
+  svgContent+='<circle cx="140" cy="140" r="130" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
+  svgContent+='<circle cx="140" cy="140" r="100" fill="none" stroke="#C5B4E3" stroke-width="0.8" stroke-dasharray="3,3"/>';
+  svgContent+='<circle cx="140" cy="140" r="60" fill="none" stroke="#C5B4E3" stroke-width="0.8" stroke-dasharray="3,3"/>';
+  for(let i=0;i<12;i++){
+    const a=(i*30-90)*(Math.PI/180);
+    const a2=((i+1)*30-90)*(Math.PI/180);
+    const x1=140+130*Math.cos(a);const y1=140+130*Math.sin(a);
+    const x2=140+130*Math.cos(a2);const y2=140+130*Math.sin(a2);
+    const xm=140+115*Math.cos((a+a2)/2);const ym=140+115*Math.sin((a+a2)/2);
+    svgContent+='<path d="M140,140 L'+x1+','+y1+' A130,130 0 0,1 '+x2+','+y2+' Z" fill="'+colors[i]+'" stroke="#C5B4E3" stroke-width="0.5" opacity="0.7"/>';
+    svgContent+='<text x="'+xm+'" y="'+(ym+4)+'" text-anchor="middle" font-size="11" fill="#7B5EA7">'+signs[i]+'</text>';
+  }
+  // Add planet positions if available
+  if(pData&&pData.length){
+    const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Ascendant'];
+    const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Ascendant:'AC'};
+    let pi=0;
+    for(const p of pData){
+      const pn=getPlanetName(p);
+      if(!shown.includes(pn))continue;
+      const deg=p.fullDegree||0;
+      const rad=(deg-90)*(Math.PI/180);
+      const r=75+pi*5;
+      const px=140+r*Math.cos(rad);const py=140+r*Math.sin(rad);
+      svgContent+='<text x="'+px+'" y="'+(py+4)+'" text-anchor="middle" font-size="9" fill="#4A3880" font-weight="bold">'+( pIcons[pn]||pn[0])+'</text>';
+      pi++;
+    }
+  }
+  svgContent+='<circle cx="140" cy="140" r="25" fill="white" stroke="#C5B4E3" stroke-width="1"/>';
+  svgContent+='<text x="140" y="144" text-anchor="middle" font-size="10" fill="#9B7EC8" font-weight="bold">✦</text>';
+  svgContent+='</svg>';
+  el.innerHTML=svgContent;
 }
 function mostrarPrev(nombre,texto){
   document.getElementById('ptit').textContent=selRep.name||'Carta Natal';
@@ -500,31 +536,33 @@ function parseReportHTML(text){
   for(const rawLine of text.split('\n')){
     const t=rawLine.trim();
     if(!t) continue;
-    // Skip junk
-    if(t==='---'||t==='***'||t==='**'||t==='##'||t==='#') continue;
-    if(/^#+ CARTA NATAL/.test(t)||/^#+ CASAS/.test(t)) continue;
+    if(t==='---'||t==='***'||t==='**') continue;
+    if(/^#{1,3} ?CARTA NATAL/.test(t)||/^#{1,3} ?CASAS \d/.test(t)) continue;
 
-    // CASA N (with or without **) → highlighted box
-    if(/^\*{0,2}CASA \d+\*{0,2}$/.test(t)||/^\*{0,2}ASPECTOS PLANETARIOS\*{0,2}$/.test(t)){
-      const clean=t.replace(/\*/g,'');
-      html+='<div class="report-chapter-title">'+clean+'</div>';
+    // Detect CASA N in ANY format Claude might output:
+    // "CASA 1", "## CASA 1", "### CASA 1", "**CASA 1**", "CASA 1:", etc.
+    const casaMatch=t.replace(/^[#*\s]+/,'').replace(/[*:]+$/,'').trim();
+    if(/^CASA \d{1,2}$/.test(casaMatch)||casaMatch==='ASPECTOS PLANETARIOS'||casaMatch==='ASPECTOS'){
+      html+='<div class="report-chapter-title">'+casaMatch+'</div>';
+      continue;
     }
-    // ### or ** subtitles → subtitle
-    else if(t.startsWith('### ')){
-      html+='<div class="planet-block-title">'+t.slice(4).replace(/\*/g,'')+'</div>';
+
+    // ### or ## = subtitle
+    if(t.startsWith('### ')){
+      html+='<div class="planet-block-title">'+t.slice(4).replace(/[*:]+$/,'').replace(/\*/g,'')+'</div>';
     }
     else if(t.startsWith('## ')){
-      html+='<div class="planet-block-title">'+t.slice(3).replace(/\*/g,'')+'</div>';
+      html+='<div class="planet-block-title">'+t.slice(3).replace(/[*:]+$/,'').replace(/\*/g,'')+'</div>';
     }
     else if(t.startsWith('# ')){
       // skip
     }
-    else if(/^\*\*[^*]+\*\*:?$/.test(t)){
-      // **Subtitle** alone on a line → subtitle
+    // Lone **Subtitle** or **Subtitle:** line
+    else if(/^\*\*[^*\n]+\*\*:?$/.test(t)){
       html+='<div class="planet-block-title">'+t.replace(/\*/g,'').replace(/:$/,'')+'</div>';
     }
+    // Normal text
     else{
-      // Normal text - clean remaining ** and render
       const processed=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*\*/g,'');
       html+='<div class="planet-block-text">'+processed+'</div>';
     }
