@@ -366,11 +366,12 @@ async function genPreview(){
   try{
     const [y,mo,d]=fecha.split('-').map(Number);
     const [h,mn]=hora.split(':').map(Number);
-    const body={year:y,month:mo,date:d,hours:h,minutes:mn,seconds:0,latitude:lat,longitude:lon,timezone:tz,config:{observation_point:'topocentric',ayanamsha:'tropical'},language:'es'};
+    const body={year:y,month:mo,date:d,hours:h,minutes:mn,seconds:0,latitude:lat,longitude:lon,timezone:tz,config:{observation_point:'topocentric',ayanamsha:'tropical'}};
     const astroRes=await fetch('/api/astro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:y,month:mo,date:d,hours:h,minutes:mn,latitude:lat,longitude:lon,timezone:tz})});
     const astroJson=await astroRes.json();
     pData=astroJson.planets||[];
     wSVG=astroJson.wheel||'';
+    console.log('pData length:', pData.length, 'wSVG length:', wSVG.length, 'first planet:', pData[0]);
     // data already set from /api/astro above
     clearInterval(iv);
     // Build KB bundle for this chart
