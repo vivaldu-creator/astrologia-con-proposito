@@ -422,7 +422,7 @@ FORMATO OBLIGATORIO (usa exactamente esto):
 [interpretación]
 
 Solo 2 capítulos. Lenguaje cálido y personalizado para ${nombre}.`
-    const cRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const cRes=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:max_tokens_val,apiKey:document.getElementById('apiKey').value.trim()})})});
     const cData=await cRes.json();
     const txt=cData.content&&cData.content[0]?cData.content[0].text:fbPrev(nombre);
     mostrarPrev(nombre,txt);
@@ -507,7 +507,7 @@ CAPÍTULO 5: [Título — sobre Júpiter, Saturno y el propósito]
 [...]
 
 Usa las citas del Manual como base pero expande con interpretaciones propias. Lenguaje cálido, íntimo y profundo. Siempre menciona a ${nombre} por nombre.`;
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:max_tokens_val,apiKey:document.getElementById('apiKey').value.trim()})})});
     const d=await r.json();
     const txt=d.content&&d.content[0]?d.content[0].text:fbRep(nombre);
     mostrarCompleto(nombre,txt);
