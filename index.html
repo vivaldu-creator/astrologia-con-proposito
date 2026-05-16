@@ -440,10 +440,11 @@ function renderWheel(containerId){
   }
 }
 function mostrarPrev(nombre,texto){
-  document.getElementById('ptit').textContent=selRep.name||selReport.name||'Carta Natal';
+  document.getElementById('ptit').textContent=selRep.name||'Carta Natal';
   document.getElementById('pnm').textContent='✦  '+nombre+'  ✦';
-  document.getElementById('pdisp').textContent=selRep.price||selReport.price||'$250.000 COP';
-  document.getElementById('prev-content').innerHTML=parseReportHTML(texto);
+  document.getElementById('pdisp').textContent=selRep.price||'$250.000 COP';
+  const pc=document.getElementById('pcont')||document.getElementById('prev-content')||document.getElementById('previewContent');
+  if(pc) pc.innerHTML=parseReportHTML(texto);
   renderWheel('wheel1');renderPlanets('pb1');
   show('s-prev');
 }
@@ -483,11 +484,12 @@ async function acceder(){
   }catch(e){console.error(e);mostrarCompleto(nombre,fbRep(nombre));}
 }
 function mostrarCompleto(nombre,texto){
-  document.getElementById('rtit').textContent=selRep.name||selReport.name||'Carta Natal';
+  document.getElementById('rtit').textContent=selRep.name||'Carta Natal';
   document.getElementById('rnm').textContent='✦  '+nombre+'  ✦';
   document.getElementById('rdate').textContent=new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
   renderWheel('wheel2');renderPlanets('pb2');
-  document.getElementById('rep-content').innerHTML=parseReportHTML(texto);
+  const rc=document.getElementById('rcont')||document.getElementById('rep-content')||document.getElementById('reportContent');
+  if(rc) rc.innerHTML=parseReportHTML(texto);
   show('s-rep');
 }
 function fbRep(n){return `CAPÍTULO 1: El Mapa del Alma\n${n}, tu carta natal revela una historia única tejida por los astros en el momento exacto de tu llegada al mundo.\n\nCAPÍTULO 2: Las Mareas Emocionales\nTu Luna describe la forma en que procesas las emociones y buscas seguridad interior.\n\nCAPÍTULO 3: La Máscara y el Ser\nTu Ascendente es la puerta de entrada a tu personalidad proyectada al mundo.\n\nCAPÍTULO 4: El Corazón y el Deseo\nVenus y Marte en tu carta hablan de cómo amas y qué te impulsa a actuar.\n\nCAPÍTULO 5: El Propósito y el Camino\n${n}, Júpiter y Saturno trazan el arco de tu crecimiento y madurez a lo largo de la vida.`;}
