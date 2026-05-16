@@ -19,21 +19,17 @@ export default async function handler(req, res) {
 
   let planets = [];
   let wheel = '';
-  let houseCusps = []; // house cusp degrees
 
   try {
-    // Fetch planets, wheel, and houses in parallel
-    const [planetsRes, wheelRes, housesRes] = await Promise.allSettled([
+    const [planetsRes, wheelRes] = await Promise.allSettled([
       fetch('https://json.freeastrologyapi.com/western/planets', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ASTRO_KEY },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ASTRO_KEY },
         body: JSON.stringify(body)
       }),
       fetch('https://json.freeastrologyapi.com/western/natal-wheel-chart', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ASTRO_KEY },
-        body: JSON.stringify(body)
-      }),
-      fetch('https://json.freeastrologyapi.com/western/houses', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': ASTRO_KEY },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ASTRO_KEY },
         body: JSON.stringify(body)
       })
     ]);
@@ -48,30 +44,29 @@ export default async function handler(req, res) {
       wheel = data.svg || data.output || '';
     }
 
-    if (housesRes.status === 'fulfilled' && housesRes.value.ok) {
-      const data = await housesRes.value.json();
-      // Houses output: array of {house: N, degree: X} or similar
-      const housesOutput = data.output || data.houses || [];
-      houseCusps = housesOutput.map(h => ({
-        house: h.house || h.number || h.id,
-        degree: h.fullDegree || h.degree || h.cusp || 0
-      }));
-    }
-
-    // Calculate house number for each planet using house cusps
-    if (houseCusps.length >= 12 && planets.length > 0) {
-      const cusps = houseCusps.map(h => h.degree).sort((a,b) => a-b);
+    // Calculate house numbers using Equal House system from Ascendant
+    // Equal house: each house is exactly 30 degrees from Ascendant
+    const ascendant = planets.find(p => p.planet && p.planet.en === 'Ascendant');
+    if (ascendant && ascendant.fullDegree !== undefined) {
+      const ascDeg = ascendant.fullDegree;
+      // House cusps: House 1 starts at Ascendant, each next house +30 degrees
+      const cusps = Array.from({length: 12}, (_, i) => (ascDeg + i * 30) % 360);
+      
       for (const planet of planets) {
-        const deg = planet.fullDegree || 0;
-        let houseNum = 12;
-        for (let i = 0; i < cusps.length; i++) {
-          const nextCusp = cusps[(i+1) % cusps.length];
-          if (nextCusp > cusps[i]) {
-            if (deg >= cusps[i] && deg < nextCusp) { houseNum = i+1; break; }
+        if (planet.fullDegree === undefined) continue;
+        const pDeg = planet.fullDegree;
+        let houseNum = 1;
+        for (let h = 11; h >= 0; h--) {
+          const cusp = cusps[h];
+          const nextCusp = cusps[(h + 1) % 12];
+          // Handle wrap-around
+          let inHouse;
+          if (cusp <= nextCusp) {
+            inHouse = pDeg >= cusp && pDeg < nextCusp;
           } else {
-            // Wraps around 360
-            if (deg >= cusps[i] || deg < nextCusp) { houseNum = i+1; break; }
+            inHouse = pDeg >= cusp || pDeg < nextCusp;
           }
+          if (inHouse) { houseNum = h + 1; break; }
         }
         planet.house = houseNum;
       }
@@ -81,5 +76,5 @@ export default async function handler(req, res) {
     console.error('API error:', e.message);
   }
 
-  return res.status(200).json({ planets, wheel, houseCusps });
+  return res.status(200).json({ planets, wheel });
 }
