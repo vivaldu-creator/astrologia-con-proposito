@@ -331,20 +331,12 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 function buildKB(planets){
   var bundle='';
   var shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
-  
-  // Ascendant
   var ascPlanet=planets.find(function(p){return getPlanetName(p)==='Ascendant';});
   if(ascPlanet){
     var ascSign=SIGN_ES[getPlanetSign(ascPlanet)]||getPlanetSign(ascPlanet);
     var k='Ascendente_'+ascSign;
-    if(KB[k]) bundle+='
-
-=== Ascendente en '+ascSign+' ===
-'+KB[k].substring(0,1200);
-    // Add cuspide patterns for all 12 houses based on ascendant
+    if(KB[k]) bundle=bundle+'\n\n=== Ascendente en '+ascSign+' ===\n'+KB[k].substring(0,1200);
   }
-  
-  // Planets in signs and houses
   for(var i=0;i<planets.length;i++){
     var p=planets[i];
     var pName=getPlanetName(p);
@@ -352,114 +344,29 @@ function buildKB(planets){
     var signEn=getPlanetSign(p);
     var sEs=SIGN_ES[signEn]||signEn;
     var house=p.house||'?';
-    
     if(shown.indexOf(pName)>=0){
       var s1=KB[pEs+'_'+sEs]||'';
       var s2=KB[pEs+'_Casa'+house]||'';
-      if(s1) bundle+='
-
-=== '+pEs+' en '+sEs+' ===
-'+s1.substring(0,1400);
-      if(s2) bundle+='
-
-=== '+pEs+' en Casa '+house+' ===
-'+s2.substring(0,1400);
+      if(s1) bundle=bundle+'\n\n=== '+pEs+' en '+sEs+' ===\n'+s1.substring(0,1400);
+      if(s2) bundle=bundle+'\n\n=== '+pEs+' en Casa '+house+' ===\n'+s2.substring(0,1400);
     }
-    
-    // Chiron
     if(pName==='Chiron'){
-      var ck1=KB['Quirón_'+sEs]||'';
-      var ck2=KB['Quirón_Casa'+house]||'';
-      if(ck1) bundle+='
-
-=== Quirón en '+sEs+' ===
-'+ck1.substring(0,1000);
-      if(ck2) bundle+='
-
-=== Quirón en Casa '+house+' ===
-'+ck2.substring(0,1000);
+      var ck1=KB['Quiron_'+sEs]||KB['Quiron '+sEs]||'';
+      var ck2=KB['Quiron_Casa'+house]||'';
+      if(!ck1){for(var kk in KB){if(kk.indexOf('uirón_'+sEs)>=0||kk.indexOf('uiron_'+sEs)>=0){ck1=KB[kk];break;}}}
+      if(!ck2){for(var kk2 in KB){if(kk2.indexOf('uirón_Casa'+house)>=0||kk2.indexOf('uiron_Casa'+house)>=0){ck2=KB[kk2];break;}}}
+      if(ck1) bundle=bundle+'\n\n=== Quirón en '+sEs+' ===\n'+ck1.substring(0,1000);
+      if(ck2) bundle=bundle+'\n\n=== Quirón en Casa '+house+' ===\n'+ck2.substring(0,1000);
     }
-    
-    // Part of Fortune
     if(pName==='Part of Fortune'){
       var fk1=KB['RuedaFortuna_'+sEs]||'';
       var fk2=KB['RuedaFortuna_Casa'+house]||'';
-      if(fk1) bundle+='
-
-=== Rueda de la Fortuna en '+sEs+' ===
-'+fk1.substring(0,1000);
-      if(fk2) bundle+='
-
-=== Rueda de la Fortuna en Casa '+house+' ===
-'+fk2.substring(0,1000);
+      if(fk1) bundle=bundle+'\n\n=== Rueda de la Fortuna en '+sEs+' ===\n'+fk1.substring(0,1000);
+      if(fk2) bundle=bundle+'\n\n=== Rueda de la Fortuna en Casa '+house+' ===\n'+fk2.substring(0,1000);
     }
   }
-  
   return bundle;
 }
-
-async function genPreview(){
-  const apiKey=document.getElementById('apiKey').value.trim();
-  const nombre=document.getElementById('nombre').value.trim()||'Consultante';
-  const fecha=document.getElementById('fecha').value;
-  const hora=document.getElementById('hora').value||'12:00';
-  const ciudad=document.getElementById('ciudad').value.trim()||'Bogotá, Colombia';
-  const lat=parseFloat(document.getElementById('lat').value)||4.711;
-  const lon=parseFloat(document.getElementById('lon').value)||-74.072;
-  const tz=parseFloat(document.getElementById('tz').value)||-5;
-  if(!selRep.type){alert('Por favor selecciona un tipo de informe.');return;}
-  if(!fecha){alert('Por favor ingresa tu fecha de nacimiento.');return;}
-  if(!apiKey){alert('Por favor ingresa tu API Key de Anthropic.');return;}
-  uData={nombre,fecha,hora,ciudad,lat,lon,tz,apiKey};
-  show('s-load');
-  const msgs=['Calculando posiciones planetarias…','Consultando el Manual de Astrología…','Tejiendo tu mapa estelar…','Preparando tu lectura personalizada…'];
-  let mi=0;
-  const iv=setInterval(()=>{document.getElementById('lmsg').textContent=msgs[mi%msgs.length];mi++;},2200);
-  try{
-    const [y,mo,d]=fecha.split('-').map(Number);
-    const [h,mn]=hora.split(':').map(Number);
-    const body={year:y,month:mo,date:d,hours:h,minutes:mn,seconds:0,latitude:lat,longitude:lon,timezone:tz,config:{observation_point:'topocentric',ayanamsha:'tropical'}};
-    const astroRes=await fetch('/api/astro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:y,month:mo,date:d,hours:h,minutes:mn,latitude:lat,longitude:lon,timezone:tz})});
-    const astroJson=await astroRes.json();
-    pData=astroJson.planets||[];
-    wSVG=astroJson.wheel||'';
-    // data already set from /api/astro above
-    clearInterval(iv);
-    // Build KB bundle for this chart
-    const kbBundle = buildKB(pData);
-    const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
-    const prompt=`Eres una experta en astrología. Tienes el Manual de Astrología de Frances Sakoian y Louis Acker como fuente.
-
-CONSULTANTE: ${nombre} | FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
-
-POSICIONES PLANETARIAS REALES:
-${planetStr}
-
-EXTRACTOS DEL MANUAL:
-${kbBundle.substring(0,12000)}
-
-TAREA: Genera una vista previa del informe de carta natal para ${nombre} con EXACTAMENTE este formato:
-
-**Sol en [Signo]**
-
-[Copia y adapta el texto del Manual sobre Sol en ese signo, 3-4 párrafos, en segunda persona dirigido a ${nombre}]
-
-**Sol en Casa [N]**
-
-[Copia y adapta el texto del Manual sobre Sol en esa casa, 2-3 párrafos]
-
-**Luna en [Signo]**
-
-[Texto del Manual sobre Luna en ese signo, 3-4 párrafos]
-
-IMPORTANTE: Usa el texto del Manual como base. No inventes. Adapta a segunda persona ("Viviana, tú..." o "Las personas con esta posición..."). Sin numeración de capítulos. Sin títulos creativos. Solo el nombre del planeta/casa en negrita seguido del texto.`;
-    const cRes=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:1500,apiKey:apiKey})});
-    const cData=await cRes.json();
-    const txt=cData.text||fbPrev(nombre);
-    mostrarPrev(nombre,txt);
-  }catch(e){clearInterval(iv);console.error(e);mostrarPrev(nombre,fbPrev(nombre));}
-}
-
 function getPlanetName(p){return p.planet&&p.planet.en?p.planet.en:(p.name||'');}
 function getPlanetSign(p){
   if(p.zodiac_sign&&p.zodiac_sign.name){
@@ -512,6 +419,65 @@ function fbPrev(n){return n+', los astros guardan para ti un relato profundo y s
 
 function togglePkgs(){const s=document.getElementById('pkgs');s.style.display=s.style.display==='none'?'block':'none';}
 function sPkg(n,p){document.getElementById('pdisp').textContent=p;selRep.price=p;selRep.name=n;document.getElementById('pkgs').style.display='none';}
+
+async function genPreview(){
+  const apiKey=document.getElementById('apiKey').value.trim();
+  const nombre=document.getElementById('nombre').value.trim()||'Consultante';
+  const fecha=document.getElementById('fecha').value;
+  const hora=document.getElementById('hora').value||'12:00';
+  const ciudad=document.getElementById('ciudad').value.trim()||'Colombia';
+  const lat=parseFloat(document.getElementById('lat').value)||4.711;
+  const lon=parseFloat(document.getElementById('lon').value)||-74.072;
+  const tz=parseFloat(document.getElementById('tz').value)||-5;
+  if(!selRep.type){alert('Por favor selecciona un tipo de informe.');return;}
+  if(!fecha){alert('Por favor ingresa tu fecha de nacimiento.');return;}
+  if(!apiKey){alert('Por favor ingresa tu API Key de Anthropic.');return;}
+  uData={nombre,fecha,hora,ciudad,lat,lon,tz,apiKey};
+  show('s-load');
+  const msgs=['Calculando posiciones planetarias…','Dibujando tu carta natal…','Consultando los libros de astrología…','Preparando tu lectura personalizada…'];
+  let mi=0;
+  const iv=setInterval(()=>{document.getElementById('lmsg').textContent=msgs[mi%msgs.length];mi++;},2200);
+  try{
+    const [y,mo,d]=fecha.split('-').map(Number);
+    const [h,mn]=hora.split(':').map(Number);
+    const astroRes=await fetch('/api/astro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:y,month:mo,date:d,hours:h,minutes:mn,latitude:lat,longitude:lon,timezone:tz})});
+    const astroJson=await astroRes.json();
+    pData=astroJson.planets||[];
+    wSVG=astroJson.wheel||'';
+    clearInterval(iv);
+    const kbBundle=buildKB(pData);
+    const planetStr=pData.slice(0,14).map(function(p){var pn=getPlanetName(p);var sn=getPlanetSign(p);var pos=p.fullDegree||0;var rx=(p.isRetro==='True')?'(Rx)':'';return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+' grados'+rx+', Casa '+(p.house||'?');}).join('\n');
+    const prompt=`Eres una experta en astrología. Tienes el Manual de Astrología de Frances Sakoian y Louis Acker como fuente.
+
+CONSULTANTE: ${nombre} | FECHA: ${fecha} | HORA: ${hora} | LUGAR: ${ciudad}
+
+POSICIONES PLANETARIAS REALES:
+${planetStr}
+
+EXTRACTOS DEL MANUAL:
+${kbBundle.substring(0,12000)}
+
+TAREA: Genera una vista previa del informe de carta natal para ${nombre} con EXACTAMENTE este formato:
+
+**Sol en [Signo]**
+
+[Copia y adapta el texto del Manual sobre Sol en ese signo, 3-4 párrafos, en segunda persona dirigido a ${nombre}]
+
+**Sol en Casa [N]**
+
+[Copia y adapta el texto del Manual sobre Sol en esa casa, 2-3 párrafos]
+
+**Luna en [Signo]**
+
+[Texto del Manual sobre Luna en ese signo, 3-4 párrafos]
+
+IMPORTANTE: Usa el texto del Manual como base. No inventes. Adapta a segunda persona. Sin numeración de capítulos. Sin títulos creativos. Solo el nombre del planeta/casa en negrita seguido del texto.`;
+    const cRes=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,max_tokens:1500,apiKey:apiKey})});
+    const cData=await cRes.json();
+    const txt=cData.text||fbPrev(nombre);
+    mostrarPrev(nombre,txt);
+  }catch(e){clearInterval(iv);console.error(e);mostrarPrev(nombre,fbPrev(nombre));}
+}
 
 async function acceder(){
   // En producción: redirigir a Wompi/PayU
