@@ -332,27 +332,25 @@ function prefillViviana(){
 function selR(el){document.querySelectorAll('.ro').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');selRep={type:el.dataset.type,price:el.dataset.price,name:el.querySelector('.rn').textContent.trim()};}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 
-// Build knowledge bundle - texto completo del libro para casas específicas
+// Build knowledge bundle para casas específicas (sin truncar)
 function buildKBforHouses(planets, houses){
   var bundle='';
   var shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
-  // Ascendente (casa 1)
   if(houses.indexOf(1)>=0){
     var ascP=planets.find(function(p){return getPlanetName(p)==='Ascendant';});
     if(ascP){
       var ascS=SIGN_ES[getPlanetSign(ascP)]||getPlanetSign(ascP);
-      var ka='Ascendente_'+ascS; if(KB[ka])bundle+='=== Ascendente en '+ascS+' ===\n'+KB[ka]+'\n\n';
-      var kc='Cuspide_Casa1_'+ascS; if(KB[kc])bundle+='=== Cúspide Casa 1 en '+ascS+' ===\n'+KB[kc]+'\n\n';
+      var ka='Ascendente_'+ascS;if(KB[ka])bundle+='=== Ascendente en '+ascS+' ===\n'+KB[ka]+'\n\n';
+      var kc='Cuspide_Casa1_'+ascS;if(KB[kc])bundle+='=== Cúspide Casa 1 en '+ascS+' ===\n'+KB[kc]+'\n\n';
     }
   }
   for(var i=0;i<planets.length;i++){
     var p=planets[i];var pn=getPlanetName(p);var pEs=PLANET_ES[pn]||pn;
     var sEn=getPlanetSign(p);var sEs=SIGN_ES[sEn]||sEn;var house=parseInt(p.house)||0;
     if(houses.indexOf(house)<0) continue;
-    // Cúspide de la casa con el signo del planeta que la habita
-    var kc='Cuspide_Casa'+house+'_'+sEs; if(KB[kc])bundle+='=== Cúspide Casa '+house+' en '+sEs+' ===\n'+KB[kc]+'\n\n';
+    var kc='Cuspide_Casa'+house+'_'+sEs;if(KB[kc])bundle+='=== Cúspide Casa '+house+' en '+sEs+' ===\n'+KB[kc]+'\n\n';
     if(shown.indexOf(pn)>=0){
-      var s1=KB[pEs+'_'+sEs]||''; var s2=KB[pEs+'_Casa'+house]||'';
+      var s1=KB[pEs+'_'+sEs]||'';var s2=KB[pEs+'_Casa'+house]||'';
       if(s1)bundle+='=== '+pEs+' en '+sEs+' ===\n'+s1+'\n\n';
       if(s2)bundle+='=== '+pEs+' en Casa '+house+' ===\n'+s2+'\n\n';
     }
@@ -363,14 +361,14 @@ function buildKBforHouses(planets, houses){
       if(qk2)bundle+='=== Quirón en Casa '+house+' ===\n'+qk2+'\n\n';
     }
     if(pn==='Part of Fortune'){
-      var fk1=KB['RuedaFortuna_'+sEs]||''; var fk2=KB['RuedaFortuna_Casa'+house]||'';
+      var fk1=KB['RuedaFortuna_'+sEs]||'';var fk2=KB['RuedaFortuna_Casa'+house]||'';
       if(fk1)bundle+='=== Rueda de la Fortuna en '+sEs+' ===\n'+fk1+'\n\n';
       if(fk2)bundle+='=== Rueda de la Fortuna en Casa '+house+' ===\n'+fk2+'\n\n';
     }
   }
   return bundle;
 }
-// Bundle general (todos los planetas, para aspectos)
+// Bundle general (todos los planetas)
 function buildKB(planets){
   var bundle='';var shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
   var ascP=planets.find(function(p){return getPlanetName(p)==='Ascendant';});
@@ -540,12 +538,12 @@ async function acceder(){
   show('s-load');
   document.getElementById('lmsg').textContent='Generando tu informe completo…';
   const {nombre,fecha,hora,ciudad,apiKey}=uData;
-  // Construir bundles del Manual por grupos de casas (texto completo, sin truncar)
+  // Bundles del Manual por grupos de casas (texto completo, sin truncar)
   const kb1=buildKBforHouses(pData,[1,2,3]);
   const kb2=buildKBforHouses(pData,[4,5,6]);
   const kb3=buildKBforHouses(pData,[7,8,9,10]);
   const kb4=buildKBforHouses(pData,[11,12]);
-  const kb5=buildKB(pData); // bundle general para aspectos
+  const kb5=buildKB(pData);
 
   const planetStr=pData.slice(0,20).map(function(p){
     var pn=getPlanetName(p);var sn=getPlanetSign(p);
@@ -553,20 +551,19 @@ async function acceder(){
     return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+rx+', Casa '+(p.house||'?');
   }).join('\n');
 
-  // Crear base de prompt con el texto del libro para las casas de ese bloque
   function makeBase(kb){
-    return 'Eres una astróloga que interpreta cartas natales usando el Manual de Astrología de Frances Sakoian y Louis Acker.\n\nREGLA: Todo lo que escribas debe basarse en los textos del Manual que aparecen en FUENTE DEL MANUAL. Usa sus conceptos, palabras clave y frases. Amplía y personaliza cada texto aplicándolo a '+nombre+', pero siempre partiendo del libro.\n\nTono: reflexivo, íntimo, cálido. Habla en segunda persona a '+nombre+'. Cada sección debe tener mínimo 3 párrafos extensos. NO uses frases genéricas ni inventes interpretaciones propias.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES:\n'+planetStr+'\n\nFUENTE DEL MANUAL (Sakoian & Acker):\n'+kb+'\n\nFORMATO: Usa exactamente estos encabezados sin asteriscos:\nCASA N  (en línea propia)\n### Subtítulo';
+    return 'Eres una astróloga que interpreta cartas natales. Usas el Manual de Astrología de Frances Sakoian y Louis Acker como fuente principal, y para la Rueda de la Fortuna usas un texto especializado de astrología (también incluido en FUENTE).\n\nREGLA: Basa TODA interpretación en los textos de FUENTE. Amplía y personaliza cada texto aplicándolo a '+nombre+' en segunda persona (tú). Mínimo 3 párrafos por sección. NO escribas notas aclaratorias sobre las fuentes — solo la interpretación directa.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES:\n'+planetStr+'\n\nFUENTE:\n'+kb+'\n\nFORMATO: Encabezados exactos sin asteriscos ni símbolos extra:\nCASA N  (en línea propia, solo eso)\n### Subtítulo';
   }
 
-  const p1=makeBase(kb1)+'\n\nINTERPRETA usando los textos del Manual de FUENTE:\n\nCASA 1\n### Significado Casa 1\n### Ascendente y Cúspide Casa 1 en Cáncer\n### Luna en Casa 1\n### Luna en Cáncer\n\nCASA 2\n### Significado Casa 2\n### Cúspide Casa 2 en Leo\n\nCASA 3\n### Significado Casa 3\n### Cúspide Casa 3 en Virgo';
+  const p1=makeBase(kb1)+'\n\nINTERPRETA cada sección con mínimo 3 párrafos usando los textos de FUENTE:\n\nCASA 1\n### Significado Casa 1\n### Ascendente y Cúspide Casa 1 en Cáncer\n### Luna en Casa 1\n### Luna en Cáncer\n\nCASA 2\n### Significado Casa 2\n### Cúspide Casa 2 en Leo\n\nCASA 3\n### Significado Casa 3\n### Cúspide Casa 3 en Virgo';
 
-  const p2=makeBase(kb2)+'\n\nINTERPRETA usando los textos del Manual de FUENTE:\n\nCASA 4\n### Significado Casa 4\n### Cúspide Casa 4 en Libra\n### Rueda de la Fortuna en Casa 4\n### Rueda de la Fortuna en Libra\n### Plutón en Casa 4\n### Plutón en Escorpión\n\nCASA 5\n### Significado Casa 5\n### Cúspide Casa 5 en Escorpión\n### Saturno en Casa 5\n### Saturno en Escorpión\n### Marte en Casa 5\n### Marte en Escorpión\n\nCASA 6\n### Significado Casa 6\n### Cúspide Casa 6 en Sagitario\n### Urano en Casa 6\n### Urano en Sagitario\n### Neptuno en Casa 6\n### Neptuno en Sagitario';
+  const p2=makeBase(kb2)+'\n\nINTERPRETA cada sección con mínimo 3 párrafos usando los textos de FUENTE:\n\nCASA 4\n### Significado Casa 4\n### Cúspide Casa 4 en Libra\n### Rueda de la Fortuna en Casa 4\n### Rueda de la Fortuna en Libra\n### Plutón en Casa 4\n### Plutón en Escorpión\n\nCASA 5\n### Significado Casa 5\n### Cúspide Casa 5 en Escorpión\n### Saturno en Casa 5\n### Saturno en Escorpión\n### Marte en Casa 5\n### Marte en Escorpión\n\nCASA 6\n### Significado Casa 6\n### Cúspide Casa 6 en Sagitario\n### Urano en Casa 6\n### Urano en Sagitario\n### Neptuno en Casa 6\n### Neptuno en Sagitario';
 
-  const p3=makeBase(kb3)+'\n\nINTERPRETA usando los textos del Manual de FUENTE:\n\nCASA 7\n### Significado Casa 7\n### Cúspide Casa 7 en Capricornio\n### Júpiter en Casa 7\n### Júpiter en Capricornio\n\nCASA 8\n### Significado Casa 8\n### Cúspide Casa 8 en Acuario\n\nCASA 9\n### Significado Casa 9\n### Cúspide Casa 9 en Piscis\n### Venus en Casa 9\n### Venus en Aries\n\nCASA 10\n### Significado Casa 10\n### Cúspide Casa 10 en Aries\n### Sol en Casa 10\n### Sol en Aries\n### Mercurio en Casa 10\n### Mercurio en Tauro';
+  const p3=makeBase(kb3)+'\n\nINTERPRETA cada sección con mínimo 3 párrafos usando los textos de FUENTE:\n\nCASA 7\n### Significado Casa 7\n### Cúspide Casa 7 en Capricornio\n### Júpiter en Casa 7\n### Júpiter en Capricornio\n\nCASA 8\n### Significado Casa 8\n### Cúspide Casa 8 en Acuario\n\nCASA 9\n### Significado Casa 9\n### Cúspide Casa 9 en Piscis\n### Venus en Casa 9\n### Venus en Aries\n\nCASA 10\n### Significado Casa 10\n### Cúspide Casa 10 en Aries\n### Sol en Casa 10\n### Sol en Aries\n### Mercurio en Casa 10\n### Mercurio en Tauro';
 
-  const p4=makeBase(kb4)+'\n\nINTERPRETA usando los textos del Manual de FUENTE:\n\nCASA 11\n### Significado Casa 11\n### Cúspide Casa 11 en Tauro\n### Quirón en Casa 11\n### Quirón en Tauro\n\nCASA 12\n### Significado Casa 12\n### Cúspide Casa 12 en Géminis';
+  const p4=makeBase(kb4)+'\n\nINTERPRETA cada sección con mínimo 3 párrafos usando los textos de FUENTE:\n\nCASA 11\n### Significado Casa 11\n### Cúspide Casa 11 en Tauro\n### Quirón en Casa 11\n### Quirón en Tauro\n\nCASA 12\n### Significado Casa 12\n### Cúspide Casa 12 en Géminis';
 
-  const p5=makeBase(kb5)+'\n\nINTERPRETA usando los textos del Manual de FUENTE:\n\nASPECTOS PLANETARIOS\n### Luna cuadratura Sol\n### Luna trígono Marte\n### Plutón oposición Mercurio\n### Marte oposición Quirón\n### Urano trígono Sol\n### Júpiter trígono Mercurio\n### Venus trígono Neptuno';
+  const p5=makeBase(kb5)+'\n\nINTERPRETA cada aspecto con mínimo 3 párrafos usando los textos de FUENTE:\n\nASPECTOS PLANETARIOS\n### Luna cuadratura Sol\n### Luna trígono Marte\n### Plutón oposición Mercurio\n### Marte oposición Quirón\n### Urano trígono Sol\n### Júpiter trígono Mercurio\n### Venus trígono Neptuno';
 
   try{
     const [r1,r2,r3,r4,r5]=await Promise.all([
@@ -594,6 +591,10 @@ function fbRep(n){return `CAPÍTULO 1: El Mapa del Alma\n${n}, tu carta natal re
 
 function parseReportHTML(text){
   if(!text) return '<p style="text-align:center;color:var(--ts);padding:2rem;">Generando...</p>';
+  // Pre-procesar: asegurar que CASA N y ASPECTOS siempre empiecen en línea propia
+  text = text.replace(/(CASA \d{1,2})/g, '\n$1\n');
+  text = text.replace(/(ASPECTOS PLANETARIOS)/g, '\n$1\n');
+  text = text.replace(/\n{3,}/g, '\n\n');
   let html='';
   for(const rawLine of text.split('\n')){
     const t=rawLine.trim();
