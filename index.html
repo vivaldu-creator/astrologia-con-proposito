@@ -432,7 +432,12 @@ function renderPlanets(id){
 function renderWheel(containerId){
   const el=document.getElementById(containerId);
   if(!el)return;
-  if(wSVG&&wSVG.trim().startsWith('<svg')){el.innerHTML=wSVG;return;}
+  if(wSVG&&wSVG.trim().startsWith('<svg')){
+    el.innerHTML=wSVG;
+    const svg=el.querySelector('svg');
+    if(svg){svg.style.cssText='width:100%;height:auto;border-radius:12px;display:block;';}
+    return;
+  }
   if(wSVG&&wSVG.length>100){el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;border-radius:12px;">';return;}
   // Zodiac SVG placeholder with proper sizing
   const cx=200,cy=200,r=170,rm=140,ri=90,rc=40;
