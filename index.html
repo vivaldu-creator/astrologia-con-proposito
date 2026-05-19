@@ -508,34 +508,25 @@ async function acceder(){
     return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+rx+', Casa '+(p.house||'?');
   }).join('\n');
 
-  const sys='Eres una astróloga experta con 20 años de experiencia. Interpretas cartas natales de forma profunda, poética e íntima. Hablas directamente a '+nombre+' en segunda persona. MÍNIMO 3 párrafos extensos por cada sección (### Subtítulo). Tono cálido y reflexivo. NO abrevies.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES:\n'+planetStr+'\n\nFORMATO ESTRICTO — escribe exactamente estos encabezados, en línea propia, sin asteriscos:\nCASA N\n### Subtítulo\n\nGenera SOLO las secciones indicadas, en el orden exacto, sin agregar ni repetir ninguna.';
+  const sys='Eres una astróloga experta. Escribe para '+nombre+' en segunda persona, con tono reflexivo, inspirador y fluido. EXACTAMENTE 1 párrafo de 4-5 líneas por sección (### Subtítulo). Conciso pero profundo. NO escribas más de un párrafo por sección.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES:\n'+planetStr+'\n\nFORMATO: encabezados exactos sin asteriscos ni símbolos:\nCASA N\n### Subtítulo\n\nGenera SOLO las secciones indicadas, en orden, sin agregar ni repetir ninguna.';
 
   const p1=sys+'\n\nCASA 1\n### Significado Casa 1\n### Ascendente y Cúspide Casa 1 en Cáncer\n### Luna en Casa 1\n### Luna en Cáncer\n\nCASA 2\n### Significado Casa 2\n### Cúspide Casa 2 en Leo\n\nCASA 3\n### Significado Casa 3\n### Cúspide Casa 3 en Virgo';
 
-  const p2=sys+'\n\nCASA 4\n### Significado Casa 4\n### Cúspide Casa 4 en Libra\n### Rueda de la Fortuna en Casa 4\n### Rueda de la Fortuna en Libra\n### Plutón en Casa 4\n### Plutón en Escorpión';
+  const p2=sys+'\n\nCASA 4\n### Significado Casa 4\n### Cúspide Casa 4 en Libra\n### Rueda de la Fortuna en Casa 4\n### Rueda de la Fortuna en Libra\n### Plutón en Casa 4\n### Plutón en Escorpión\n\nCASA 5\n### Significado Casa 5\n### Cúspide Casa 5 en Escorpión\n### Saturno en Casa 5\n### Saturno en Escorpión\n### Marte en Casa 5\n### Marte en Escorpión\n\nCASA 6\n### Significado Casa 6\n### Cúspide Casa 6 en Sagitario\n### Urano en Casa 6\n### Urano en Sagitario\n### Neptuno en Casa 6\n### Neptuno en Sagitario';
 
-  const p3=sys+'\n\nCASA 5\n### Significado Casa 5\n### Cúspide Casa 5 en Escorpión\n### Saturno en Casa 5\n### Saturno en Escorpión\n### Marte en Casa 5\n### Marte en Escorpión\n\nCASA 6\n### Significado Casa 6\n### Cúspide Casa 6 en Sagitario\n### Urano en Casa 6\n### Urano en Sagitario\n### Neptuno en Casa 6\n### Neptuno en Sagitario';
+  const p3=sys+'\n\nCASA 7\n### Significado Casa 7\n### Cúspide Casa 7 en Capricornio\n### Júpiter en Casa 7\n### Júpiter en Capricornio\n\nCASA 8\n### Significado Casa 8\n### Cúspide Casa 8 en Acuario\n\nCASA 9\n### Significado Casa 9\n### Cúspide Casa 9 en Piscis\n### Venus en Casa 9\n### Venus en Aries\n\nCASA 10\n### Significado Casa 10\n### Cúspide Casa 10 en Aries\n### Sol en Casa 10\n### Sol en Aries\n### Mercurio en Casa 10\n### Mercurio en Tauro';
 
-  const p4=sys+'\n\nCASA 7\n### Significado Casa 7\n### Cúspide Casa 7 en Capricornio\n### Júpiter en Casa 7\n### Júpiter en Capricornio\n\nCASA 8\n### Significado Casa 8\n### Cúspide Casa 8 en Acuario\n\nCASA 9\n### Significado Casa 9\n### Cúspide Casa 9 en Piscis\n### Venus en Casa 9\n### Venus en Aries';
-
-  const p5=sys+'\n\nCASA 10\n### Significado Casa 10\n### Cúspide Casa 10 en Aries\n### Sol en Casa 10\n### Sol en Aries\n### Mercurio en Casa 10\n### Mercurio en Tauro\n\nCASA 11\n### Significado Casa 11\n### Cúspide Casa 11 en Tauro\n### Quirón en Casa 11\n### Quirón en Tauro';
-
-  const p6=sys+'\n\nCASA 12\n### Significado Casa 12\n### Cúspide Casa 12 en Géminis';
-
-  const p7=sys+'\n\nASPECTOS PLANETARIOS\n### Luna cuadratura Sol\n### Luna trígono Marte\n### Plutón oposición Tauro\n### Marte oposición Quirón\n### Urano trígono Sol\n### Júpiter trígono Mercurio\n### Venus cuadratura Neptuno';
+  const p4=sys+'\n\nCASA 11\n### Significado Casa 11\n### Cúspide Casa 11 en Tauro\n### Quirón en Casa 11\n### Quirón en Tauro\n\nCASA 12\n### Significado Casa 12\n### Cúspide Casa 12 en Géminis\n\nASPECTOS PLANETARIOS\n### Luna cuadratura Sol\n### Luna trígono Marte\n### Plutón oposición Tauro\n### Marte oposición Quirón\n### Urano trígono Sol\n### Júpiter trígono Mercurio\n### Venus cuadratura Neptuno';
 
   try{
-    const [r1,r2,r3,r4,r5,r6,r7]=await Promise.all([
-      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p1,max_tokens:5000,apiKey:apiKey})}),
+    const [r1,r2,r3,r4]=await Promise.all([
+      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p1,max_tokens:3000,apiKey:apiKey})}),
       fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p2,max_tokens:5000,apiKey:apiKey})}),
       fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p3,max_tokens:5000,apiKey:apiKey})}),
-      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p4,max_tokens:5000,apiKey:apiKey})}),
-      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p5,max_tokens:5000,apiKey:apiKey})}),
-      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p6,max_tokens:3000,apiKey:apiKey})}),
-      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p7,max_tokens:5000,apiKey:apiKey})})
+      fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p4,max_tokens:5000,apiKey:apiKey})})
     ]);
-    const [d1,d2,d3,d4,d5,d6,d7]=await Promise.all([r1.json(),r2.json(),r3.json(),r4.json(),r5.json(),r6.json(),r7.json()]);
-    const txt=(d1.text||'')+'\n\n'+(d2.text||'')+'\n\n'+(d3.text||'')+'\n\n'+(d4.text||'')+'\n\n'+(d5.text||'')+'\n\n'+(d6.text||'')+'\n\n'+(d7.text||'');
+    const [d1,d2,d3,d4]=await Promise.all([r1.json(),r2.json(),r3.json(),r4.json()]);
+    const txt=(d1.text||'')+'\n\n'+(d2.text||'')+'\n\n'+(d3.text||'')+'\n\n'+(d4.text||'');
     mostrarCompleto(nombre,txt||fbRep(nombre));
   }catch(e){console.error(e);mostrarCompleto(nombre,fbRep(nombre));}
 }
