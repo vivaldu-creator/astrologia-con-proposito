@@ -41,8 +41,7 @@ export default async function handler(req, res) {
 
     if (wheelRes.status === 'fulfilled' && wheelRes.value.ok) {
       const data = await wheelRes.value.json();
-      // freeastrologyapi devuelve chart_url (URL a SVG en S3)
-      wheel = data.chart_url || data.svg || data.output || '';
+      wheel = data.svg || data.output || '';
     }
 
     // Calculate house numbers using Equal House system from Ascendant
