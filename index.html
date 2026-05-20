@@ -159,27 +159,21 @@ footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--t
   <p class="st">✦ ¿Qué deseas explorar?</p>
   <p class="ss">Elige tu informe — el precio aparecerá al seleccionarlo</p>
   <div class="rgrid">
-    <div class="ro" data-type="carta_natal" data-price="$250.000 COP" onclick="selR(this)"><span class="ri">☽</span><span class="rn">Carta Natal</span><span class="rp">$250.000 COP</span></div>
-    <div class="ro" data-type="revolucion_solar" data-price="$150.000 COP" onclick="selR(this)"><span class="ri">☀</span><span class="rn">Revolución Solar</span><span class="rp">$150.000 COP</span></div>
-    <div class="ro" data-type="revolucion_lunar" data-price="$120.000 COP" onclick="selR(this)"><span class="ri">🌙</span><span class="rn">Revolución Lunar</span><span class="rp">$120.000 COP</span></div>
-    <div class="ro" data-type="transitos" data-price="$100.000 COP" onclick="selR(this)"><span class="ri">♄</span><span class="rn">Tránsitos Actuales</span><span class="rp">$100.000 COP</span></div>
-    <div class="ro" data-type="horoscopo_diario" data-price="$30.000 COP" onclick="selR(this)"><div class="rbadge">Nuevo</div><span class="ri">🌟</span><span class="rn">Horóscopo Diario</span><span class="rp">$30.000 COP</span></div>
-    <div class="ro" data-type="compatibilidad" data-price="$180.000 COP" onclick="selR(this)"><span class="ri">♡</span><span class="rn">Compatibilidad de Parejas</span><span class="rp">$180.000 COP</span></div>
-    <div class="ro" data-type="trabajo" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">💼</span><span class="rn">Informe para el Trabajo</span><span class="rp">$80.000 COP</span></div>
-    <div class="ro" data-type="amor" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">💗</span><span class="rn">Informe para el Amor</span><span class="rp">$80.000 COP</span></div>
-    <div class="ro" data-type="salud" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">🌿</span><span class="rn">Informe para la Salud</span><span class="rp">$80.000 COP</span></div>
-    <div class="ro" data-type="viajes" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">✈️</span><span class="rn">Informe para Viajar</span><span class="rp">$80.000 COP</span></div>
-    <div class="ro" data-type="estudio" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">📚</span><span class="rn">Informe para Estudiar</span><span class="rp">$80.000 COP</span></div>
-    <div class="ro" data-type="dos_preguntas" data-price="$50.000 COP" onclick="selR(this)"><div class="rbadge">Flex</div><span class="ri">◎</span><span class="rn">2 Preguntas</span><span class="rp">$50.000 COP</span></div>
+    <div class="ro" data-type="carta_natal" data-price="$250.000 COP" onclick="selR(this)"><span class="ri">☽</span><span class="rn">Carta Natal</span></div>
+    <div class="ro" data-type="revolucion_solar" data-price="$150.000 COP" onclick="selR(this)"><span class="ri">☀</span><span class="rn">Revolución Solar</span></div>
+    <div class="ro" data-type="revolucion_lunar" data-price="$120.000 COP" onclick="selR(this)"><span class="ri">🌙</span><span class="rn">Revolución Lunar</span></div>
+    <div class="ro" data-type="transitos" data-price="$100.000 COP" onclick="selR(this)"><span class="ri">♄</span><span class="rn">Tránsitos Actuales</span></div>
+    <div class="ro" data-type="horoscopo_diario" data-price="$30.000 COP" onclick="selR(this)"><div class="rbadge">Nuevo</div><span class="ri">🌟</span><span class="rn">Horóscopo Diario</span></div>
+    <div class="ro" data-type="compatibilidad" data-price="$180.000 COP" onclick="selR(this)"><span class="ri">♡</span><span class="rn">Compatibilidad de Parejas</span></div>
+    <div class="ro" data-type="trabajo" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">💼</span><span class="rn">Informe para el Trabajo</span></div>
+    <div class="ro" data-type="amor" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">💗</span><span class="rn">Informe para el Amor</span></div>
+    <div class="ro" data-type="salud" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">🌿</span><span class="rn">Informe para la Salud</span></div>
+    <div class="ro" data-type="viajes" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">✈️</span><span class="rn">Informe para Viajar</span></div>
+    <div class="ro" data-type="estudio" data-price="$80.000 COP" onclick="selR(this)"><span class="ri">📚</span><span class="rn">Informe para Estudiar</span></div>
+    <div class="ro" data-type="dos_preguntas" data-price="$50.000 COP" onclick="selR(this)"><div class="rbadge">Flex</div><span class="ri">◎</span><span class="rn">2 Preguntas</span></div>
   </div>
   <div class="div">✦ &nbsp; ✦ &nbsp; ✦</div>
-  <div class="anote"><p><strong>Prototipo funcional:</strong> Ingresa tu API Key de Anthropic para generar los textos interpretativos. Obtén la tuya en <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p></div>
-  <div class="fr one"><div class="fg"><label>API Key de Anthropic</label><input type="password" id="apiKey" placeholder="sk-ant-..."/></div></div>
-  <div style="text-align:center;margin-top:1rem;margin-bottom:-.5rem;">
-    <button onclick="prefillViviana()" style="background:rgba(155,126,200,.12);border:1.5px solid rgba(155,126,200,.35);border-radius:50px;color:var(--li);font-family:'Quicksand',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.5rem 1.5rem;cursor:pointer;">
-      ⚡ Precargar datos de prueba (Viviana)
-    </button>
-  </div>
+  <input type="hidden" id="apiKey" value=""/>
   <button class="btn-m" onclick="genPreview()">✦ &nbsp; Revelar mi Vista Previa &nbsp; ✦</button>
 </div>
 </div>
@@ -221,7 +215,6 @@ footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--t
       <li>Orientación personalizada para tu vida actual</li>
       <li>Acceso inmediato al informe en pantalla</li>
     </ul>
-    <!-- Botón BOLD - se muestra cuando hay informe seleccionado -->
     <div id="bold-btn-container" style="margin-top:1.2rem;">
       <script
         src="https://checkout.bold.co/library/boldPaymentButton.js"
@@ -347,13 +340,12 @@ function selR(el){
   document.querySelectorAll('.ro').forEach(o=>o.classList.remove('sel'));
   el.classList.add('sel');
   selRep={type:el.dataset.type,price:el.dataset.price,name:el.querySelector('.rn').textContent.trim()};
-  // Actualizar monto del botón BOLD según el informe seleccionado
-  const rawPrice = el.dataset.price.replace(/[^0-9]/g,'');
-  const boldScript = document.querySelector('[data-bold-button]');
+  const rawPrice=el.dataset.price.replace(/[^0-9]/g,'');
+  const boldScript=document.querySelector('[data-bold-button]');
   if(boldScript){
-    boldScript.setAttribute('data-amount', rawPrice);
-    boldScript.setAttribute('data-description', 'Informe Astrológico: ' + selRep.name);
-    boldScript.setAttribute('data-order-id', 'informe-' + selRep.type + '-' + Date.now());
+    boldScript.setAttribute('data-amount',rawPrice);
+    boldScript.setAttribute('data-description','Informe Astrológico: '+selRep.name);
+    boldScript.setAttribute('data-order-id','informe-'+selRep.type+'-'+Date.now());
   }
 }
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
@@ -387,7 +379,7 @@ function buildKB(planets){
 }
 
 async function genPreview(){
-  const apiKey=document.getElementById('apiKey').value.trim();
+  const apiKey='';
   const nombre=document.getElementById('nombre').value.trim()||'Consultante';
   const fecha=document.getElementById('fecha').value;
   const hora=document.getElementById('hora').value||'12:00';
@@ -397,7 +389,7 @@ async function genPreview(){
   const tz=parseFloat(document.getElementById('tz').value)||-5;
   if(!selRep.type){alert('Por favor selecciona un tipo de informe.');return;}
   if(!fecha){alert('Por favor ingresa tu fecha de nacimiento.');return;}
-  if(!apiKey){alert('Por favor ingresa tu API Key de Anthropic.');return;}
+
   uData={nombre,fecha,hora,ciudad,lat,lon,tz,apiKey};
   show('s-load');
   const msgs=['Calculando posiciones planetarias…','Consultando el Manual de Astrología…','Tejiendo tu mapa estelar…','Preparando tu lectura personalizada…'];
