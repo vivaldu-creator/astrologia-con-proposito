@@ -435,61 +435,130 @@ function renderWheel(containerId){
   if(wSVG&&wSVG.trim().startsWith('<svg')){
     el.innerHTML=wSVG;
     const svg=el.querySelector('svg');
-    if(svg){svg.style.cssText='width:100%;height:auto;border-radius:12px;display:block;';}
+    if(svg)svg.style.cssText='width:100%;height:auto;display:block;';
     return;
   }
   if(wSVG&&wSVG.length>100){
-    // Es una URL (chart_url de freeastrologyapi)
-    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;border-radius:12px;display:block;">';
+    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;display:block;">';
     return;
   }
-  // Zodiac SVG placeholder with proper sizing
-  const cx=200,cy=200,r=170,rm=140,ri=90,rc=40;
-  const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
-  const sc=['#F4C2C2','#D4C4A8','#C4D4E8','#B9D8F0','#F4D4A8','#C4D8B4','#D4C4E8','#C4A8B8','#D4C4A8','#B8C8D8','#C4D8E8','#D4B8D4'];
-  let s='<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">';
-  // Outer ring background
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
-  // 12 sign segments
-  for(let i=0;i<12;i++){
-    const a1=((i*30)-90)*Math.PI/180;
-    const a2=(((i+1)*30)-90)*Math.PI/180;
-    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
-    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
-    const xi1=cx+ri*Math.cos(a1),yi1=cy+ri*Math.sin(a1);
-    const xi2=cx+ri*Math.cos(a2),yi2=cy+ri*Math.sin(a2);
-    s+='<path d="M'+xi1+','+yi1+' L'+x1+','+y1+' A'+r+','+r+' 0 0,1 '+x2+','+y2+' L'+xi2+','+yi2+' A'+ri+','+ri+' 0 0,0 '+xi1+','+yi1+' Z" fill="'+sc[i]+'" stroke="#C5B4E3" stroke-width="0.8" opacity="0.85"/>';
-    const am=(a1+a2)/2;
-    const xt=cx+(r+ri)/2*Math.cos(am),yt=cy+(r+ri)/2*Math.sin(am);
-    s+='<text x="'+xt+'" y="'+(yt+5)+'" text-anchor="middle" font-size="14" fill="#6B4E8B">'+signs[i]+'</text>';
-    // Divider lines
-    s+='<line x1="'+(cx+ri*Math.cos(a1))+'" y1="'+(cy+ri*Math.sin(a1))+'" x2="'+(cx+r*Math.cos(a1))+'" y2="'+(cy+r*Math.sin(a1))+'" stroke="#C5B4E3" stroke-width="0.8"/>';
+
+  // ── Rueda natal estilo oscuro ──────────────────────────────
+  const S=500, cx=250, cy=250;
+  const rOuter=230, rZodiac=195, rHouse=155, rPlanet=125, rCenter=42;
+
+  // Colores por elemento
+  const signColors=['#B84040','#6B8E3E','#4A7FA5','#3B7A6B', // Aries,Tau,Gem,Can
+                    '#B84040','#6B8E3E','#4A7FA5','#3B7A6B', // Leo,Vir,Lib,Sco
+                    '#B84040','#6B8E3E','#4A7FA5','#3B7A6B']; // Sag,Cap,Aqu,Pis
+  const signSymbols=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+
+  // Calcular offset del Ascendente para rotar la rueda
+  const ascP=pData&&pData.find(p=>getPlanetName(p)==='Ascendant');
+  const ascDeg=ascP?( ascP.fullDegree||0):0;
+  // En carta natal el Asc va a la izquierda (180° en coordenadas SVG)
+  const rotOffset=ascDeg-180;
+
+  function toRad(deg){return (deg-rotOffset-90)*Math.PI/180;}
+  function px(r,deg){return cx+r*Math.cos(toRad(deg));}
+  function py(r,deg){return cy+r*Math.sin(toRad(deg));}
+  function arc(r,a1,a2,large){
+    return 'M'+px(r,a1)+','+py(r,a1)+' A'+r+','+r+' 0 '+large+',1 '+px(r,a2)+','+py(r,a2);
   }
-  // Middle ring
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="white" stroke="#C5B4E3" stroke-width="1"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rm+'" fill="none" stroke="rgba(197,180,227,0.4)" stroke-width="0.5" stroke-dasharray="2,4"/>';
-  // Planet positions
-  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'Asc',Chiron:'⚷'};
-  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Ascendant'];
-  if(pData&&pData.length){
-    let pi=0;
-    for(const p of pData){
-      const pn=getPlanetName(p);
-      if(!shown.includes(pn))continue;
-      const deg=p.fullDegree||0;
-      const rad=(deg-90)*Math.PI/180;
-      const pr=ri-15-(pi%3)*12;
-      const px=cx+pr*Math.cos(rad),py=cy+pr*Math.sin(rad);
-      s+='<circle cx="'+px+'" cy="'+py+'" r="10" fill="rgba(155,126,200,0.15)" stroke="#9B7EC8" stroke-width="0.8"/>';
-      s+='<text x="'+px+'" y="'+(py+4)+'" text-anchor="middle" font-size="9" fill="#4A3880" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
-      pi++;
+
+  let s='<svg viewBox="0 0 '+S+' '+S+'" xmlns="http://www.w3.org/2000/svg" style="background:#1a1a2e;border-radius:50%;">';
+
+  // Fondo
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rOuter+'" fill="#1a1a2e" stroke="#3a3a5c" stroke-width="1.5"/>';
+
+  // ── Anillo del zodiaco ─────────────────────────────────────
+  for(let i=0;i<12;i++){
+    const a1=i*30, a2=(i+1)*30, large=0;
+    const x1o=px(rOuter,a1),y1o=py(rOuter,a1),x2o=px(rOuter,a2),y2o=py(rOuter,a2);
+    const x1z=px(rZodiac,a1),y1z=py(rZodiac,a1),x2z=px(rZodiac,a2),y2z=py(rZodiac,a2);
+    s+='<path d="M'+x1z+','+y1z+' L'+x1o+','+y1o+' A'+rOuter+','+rOuter+' 0 0,1 '+x2o+','+y2o+' L'+x2z+','+y2z+' A'+rZodiac+','+rZodiac+' 0 0,0 '+x1z+','+y1z+' Z"';
+    s+=' fill="'+signColors[i]+'" opacity="0.25" stroke="#2a2a4a" stroke-width="0.5"/>';
+    // Símbolo del signo
+    const am=a1+15;
+    s+='<text x="'+px((rOuter+rZodiac)/2,am)+'" y="'+(py((rOuter+rZodiac)/2,am)+5)+'"';
+    s+=' text-anchor="middle" font-size="14" fill="'+signColors[i]+'" opacity="0.9" font-weight="bold">'+signSymbols[i]+'</text>';
+    // Línea divisoria
+    s+='<line x1="'+px(rZodiac,a1)+'" y1="'+py(rZodiac,a1)+'" x2="'+px(rOuter,a1)+'" y2="'+py(rOuter,a1)+'" stroke="#3a3a5c" stroke-width="0.8"/>';
+  }
+
+  // ── Anillo de casas ────────────────────────────────────────
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rZodiac+'" fill="none" stroke="#3a3a5c" stroke-width="1"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rHouse+'" fill="#141428" stroke="#3a3a5c" stroke-width="1"/>';
+
+  // Líneas de casas (cada 30° desde Asc)
+  for(let h=0;h<12;h++){
+    const hDeg=h*30;
+    const isAxis=(h%3===0);
+    s+='<line x1="'+px(rZodiac,hDeg)+'" y1="'+py(rZodiac,hDeg)+'"';
+    s+=' x2="'+px(rHouse,hDeg)+'" y2="'+py(rHouse,hDeg)+'"';
+    s+=' stroke="'+(isAxis?'#6a6a9a':'#3a3a5c')+'" stroke-width="'+(isAxis?1.5:0.7)+'"/>';
+    // Número de casa
+    const hm=hDeg+15;
+    s+='<text x="'+px((rZodiac+rHouse)/2,hm)+'" y="'+(py((rZodiac+rHouse)/2,hm)+4)+'"';
+    s+=' text-anchor="middle" font-size="9" fill="#7a7aaa">'+((h+1))+'</text>';
+  }
+
+  // ── Aspectos ───────────────────────────────────────────────
+  const aspectColors={conjunction:'#aaaacc',opposition:'#cc4444',trine:'#44aa66',square:'#cc8844',sextile:'#4488cc'};
+  const aspectOrbs={conjunction:8,opposition:8,trine:8,square:8,sextile:6};
+  const aspectAngles={conjunction:0,opposition:180,trine:120,square:90,sextile:60};
+  const shownAsp=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+  const aspPlanets=pData?pData.filter(p=>shownAsp.includes(getPlanetName(p))):[];
+
+  for(let i=0;i<aspPlanets.length;i++){
+    for(let j=i+1;j<aspPlanets.length;j++){
+      const d1=aspPlanets[i].fullDegree||0, d2=aspPlanets[j].fullDegree||0;
+      let diff=Math.abs(d1-d2); if(diff>180)diff=360-diff;
+      for(const [asp,ang] of Object.entries(aspectAngles)){
+        if(Math.abs(diff-ang)<=aspectOrbs[asp]){
+          s+='<line x1="'+px(rHouse,d1)+'" y1="'+py(rHouse,d1)+'"';
+          s+=' x2="'+px(rHouse,d2)+'" y2="'+py(rHouse,d2)+'"';
+          s+=' stroke="'+aspectColors[asp]+'" stroke-width="0.8" opacity="0.6"/>';
+          break;
+        }
+      }
     }
   }
-  // Center
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rc+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
-  s+='<text x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle" font-size="11" fill="#9B7EC8" font-weight="bold">✦</text>';
-  s+='<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Carta</text>';
-  s+='<text x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Natal</text>';
+
+  // ── Planetas ───────────────────────────────────────────────
+  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'AC',Chiron:'⚷',NorthNode:'☊'};
+  const pColors={Sun:'#FFD700',Moon:'#C0C8E8',Mercury:'#A0D0A0',Venus:'#FFB6C1',Mars:'#FF6B6B',Jupiter:'#FFA07A',Saturn:'#C8B080',Uranus:'#80D8E8',Neptune:'#9090E8',Pluto:'#C080C0',Ascendant:'#FFFFFF',Chiron:'#D4A0A0'};
+  const shownP=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Ascendant','Chiron'];
+
+  if(pData&&pData.length){
+    // Separar planetas cercanos para evitar solapamiento
+    const placed=[];
+    for(const p of pData){
+      const pn=getPlanetName(p);
+      if(!shownP.includes(pn))continue;
+      let deg=p.fullDegree||0;
+      // Ajustar si hay solapamiento
+      let pr=rPlanet;
+      for(const q of placed){
+        let dd=Math.abs(deg-q.deg); if(dd>180)dd=360-dd;
+        if(dd<8) pr-=18;
+      }
+      placed.push({deg,pr});
+      const bx=px(pr,deg), by=py(pr,deg);
+      const col=pColors[pn]||'#cccccc';
+      const rx=(p.isRetro==='True');
+      // Círculo del planeta
+      s+='<circle cx="'+bx+'" cy="'+by+'" r="13" fill="#1a1a3a" stroke="'+col+'" stroke-width="1.5"/>';
+      s+='<text x="'+bx+'" y="'+(by+5)+'" text-anchor="middle" font-size="11" fill="'+col+'" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
+      if(rx) s+='<text x="'+(bx+10)+'" y="'+(by-8)+'" font-size="7" fill="#aaaacc">Rx</text>';
+      // Línea al anillo de casas
+      s+='<line x1="'+px(rHouse,deg)+'" y1="'+py(rHouse,deg)+'" x2="'+px(pr+14,deg)+'" y2="'+py(pr+14,deg)+'" stroke="'+col+'" stroke-width="0.5" opacity="0.4"/>';
+    }
+  }
+
+  // ── Centro ─────────────────────────────────────────────────
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rCenter+'" fill="#0f0f22" stroke="#4a4a7a" stroke-width="1.5"/>';
+  s+='<text x="'+cx+'" y="'+(cy+5)+'" text-anchor="middle" font-size="10" fill="#8888bb" font-weight="bold">NATAL</text>';
   s+='</svg>';
   el.innerHTML=s;
 }
