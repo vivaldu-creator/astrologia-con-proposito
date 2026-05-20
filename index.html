@@ -173,13 +173,7 @@ footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--t
     <div class="ro" data-type="dos_preguntas" data-price="$50.000 COP" onclick="selR(this)"><div class="rbadge">Flex</div><span class="ri">◎</span><span class="rn">2 Preguntas</span><span class="rp">$50.000 COP</span></div>
   </div>
   <div class="div">✦ &nbsp; ✦ &nbsp; ✦</div>
-  <div class="anote"><p><strong>Prototipo funcional:</strong> Ingresa tu API Key de Anthropic para generar los textos interpretativos. Obtén la tuya en <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p></div>
-  <div class="fr one"><div class="fg"><label>API Key de Anthropic</label><input type="password" id="apiKey" placeholder="sk-ant-..."/></div></div>
-  <div style="text-align:center;margin-top:1rem;margin-bottom:-.5rem;">
-    <button onclick="prefillViviana()" style="background:rgba(155,126,200,.12);border:1.5px solid rgba(155,126,200,.35);border-radius:50px;color:var(--li);font-family:'Quicksand',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.5rem 1.5rem;cursor:pointer;">
-      ⚡ Precargar datos de prueba (Viviana)
-    </button>
-  </div>
+  <input type="hidden" id="apiKey" value=""/>
   <button class="btn-m" onclick="genPreview()">✦ &nbsp; Revelar mi Vista Previa &nbsp; ✦</button>
 </div>
 </div>
@@ -361,7 +355,7 @@ function buildKB(planets){
 }
 
 async function genPreview(){
-  const apiKey=document.getElementById('apiKey').value.trim();
+  const apiKey='';
   const nombre=document.getElementById('nombre').value.trim()||'Consultante';
   const fecha=document.getElementById('fecha').value;
   const hora=document.getElementById('hora').value||'12:00';
@@ -371,7 +365,7 @@ async function genPreview(){
   const tz=parseFloat(document.getElementById('tz').value)||-5;
   if(!selRep.type){alert('Por favor selecciona un tipo de informe.');return;}
   if(!fecha){alert('Por favor ingresa tu fecha de nacimiento.');return;}
-  if(!apiKey){alert('Por favor ingresa tu API Key de Anthropic.');return;}
+
   uData={nombre,fecha,hora,ciudad,lat,lon,tz,apiKey};
   show('s-load');
   const msgs=['Calculando posiciones planetarias…','Consultando el Manual de Astrología…','Tejiendo tu mapa estelar…','Preparando tu lectura personalizada…'];
@@ -435,161 +429,61 @@ function renderWheel(containerId){
   if(wSVG&&wSVG.trim().startsWith('<svg')){
     el.innerHTML=wSVG;
     const svg=el.querySelector('svg');
-    if(svg)svg.style.cssText='width:100%;height:auto;display:block;';
+    if(svg){svg.style.cssText='width:100%;height:auto;border-radius:12px;display:block;';}
     return;
   }
   if(wSVG&&wSVG.length>100){
-    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;display:block;">';
+    // Es una URL (chart_url de freeastrologyapi)
+    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;border-radius:12px;display:block;">';
     return;
   }
-
-  // ── Carta natal estilo clásico (fondo blanco, Asc izquierda) ──
-  const S=540, cx=270, cy=270;
-  const R1=255; // borde exterior
-  const R2=228; // anillo signos exterior
-  const R3=195; // anillo signos interior / casas exterior
-  const R4=155; // anillo casas interior
-  const R5=60;  // círculo central
-
-  const signSymbols=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
-  const signColors=['#cc3333','#886622','#226688','#228866',
-                    '#cc3333','#886622','#226688','#228866',
-                    '#cc3333','#886622','#226688','#228866'];
-  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',
-                Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',
-                Pluto:'♇',Ascendant:'AC',Chiron:'⚷',NorthNode:'☊'};
-  const pColors={Sun:'#cc8800',Moon:'#6688cc',Mercury:'#448844',
-                 Venus:'#cc4488',Mars:'#cc2222',Jupiter:'#cc6622',
-                 Saturn:'#887722',Uranus:'#2288aa',Neptune:'#4444aa',
-                 Pluto:'#882288',Ascendant:'#cc2222',Chiron:'#886644',NorthNode:'#445588'};
-
-  // Ascendente
-  const ascP=pData&&pData.find(p=>getPlanetName(p)==='Ascendant');
-  const ascDeg=ascP?(ascP.fullDegree||0):0;
-
-  // Conversión: grado eclíptico → ángulo SVG
-  // El Asc va a la izquierda (ángulo 180° en SVG = oeste)
-  // Sentido antihorario en astrología → horario en SVG (invertimos)
-  function toAngle(ecDeg){
-    // ecDeg: grado eclíptico 0-360
-    // Asc en 180° SVG, y los grados van en sentido antihorario en astrología
-    return (180 - (ecDeg - ascDeg) + 360) % 360;
-  }
-  function rad(a){return a*Math.PI/180;}
-  function X(r,a){return cx+r*Math.cos(rad(a));}
-  function Y(r,a){return cy+r*Math.sin(rad(a));}
-
-  let s='<svg viewBox="0 0 '+S+' '+S+'" xmlns="http://www.w3.org/2000/svg">';
-  s+='<rect width="'+S+'" height="'+S+'" fill="white"/>';
-
-  // Círculos principales
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R1+'" fill="white" stroke="#aaa" stroke-width="1.5"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R2+'" fill="white" stroke="#aaa" stroke-width="0.8"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R3+'" fill="#f8f8f8" stroke="#aaa" stroke-width="1"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R4+'" fill="white" stroke="#888" stroke-width="1.5"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R5+'" fill="white" stroke="#aaa" stroke-width="1"/>';
-
-  // ── Anillo de signos ──
+  // Zodiac SVG placeholder with proper sizing
+  const cx=200,cy=200,r=170,rm=140,ri=90,rc=40;
+  const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+  const sc=['#F4C2C2','#D4C4A8','#C4D4E8','#B9D8F0','#F4D4A8','#C4D8B4','#D4C4E8','#C4A8B8','#D4C4A8','#B8C8D8','#C4D8E8','#D4B8D4'];
+  let s='<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">';
+  // Outer ring background
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
+  // 12 sign segments
   for(let i=0;i<12;i++){
-    // Los signos comienzan en Aries=0° y van en sentido antihorario
-    const a1=toAngle(i*30);
-    const a2=toAngle((i+1)*30);
-    // path en sentido correcto
-    const x1=X(R2,a1),y1=Y(R2,a1),x2=X(R2,a2),y2=Y(R2,a2);
-    const x3=X(R3,a2),y3=Y(R3,a2),x4=X(R3,a1),y4=Y(R3,a1);
-    // large-arc: siempre 0 (30 grados)
-    // sweep: 0 porque vamos en sentido antihorario en SVG cuando toAngle invierte
-    s+='<path d="M'+x1+','+y1+' A'+R2+','+R2+' 0 0,0 '+x2+','+y2;
-    s+=' L'+x3+','+y3+' A'+R3+','+R3+' 0 0,1 '+x4+','+y4+' Z"';
-    s+=' fill="'+signColors[i]+'" opacity="0.08" stroke="#ccc" stroke-width="0.5"/>';
-    // Símbolo
-    const am=toAngle(i*30+15);
-    s+='<text x="'+X((R2+R3)/2,am)+'" y="'+(Y((R2+R3)/2,am)+5)+'"';
-    s+=' text-anchor="middle" font-size="15" fill="'+signColors[i]+'" font-weight="bold">'+signSymbols[i]+'</text>';
-    // Línea divisoria en R2-R1
-    s+='<line x1="'+X(R3,a1)+'" y1="'+Y(R3,a1)+'" x2="'+X(R1,a1)+'" y2="'+Y(R1,a1)+'" stroke="#ccc" stroke-width="0.6"/>';
+    const a1=((i*30)-90)*Math.PI/180;
+    const a2=(((i+1)*30)-90)*Math.PI/180;
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const xi1=cx+ri*Math.cos(a1),yi1=cy+ri*Math.sin(a1);
+    const xi2=cx+ri*Math.cos(a2),yi2=cy+ri*Math.sin(a2);
+    s+='<path d="M'+xi1+','+yi1+' L'+x1+','+y1+' A'+r+','+r+' 0 0,1 '+x2+','+y2+' L'+xi2+','+yi2+' A'+ri+','+ri+' 0 0,0 '+xi1+','+yi1+' Z" fill="'+sc[i]+'" stroke="#C5B4E3" stroke-width="0.8" opacity="0.85"/>';
+    const am=(a1+a2)/2;
+    const xt=cx+(r+ri)/2*Math.cos(am),yt=cy+(r+ri)/2*Math.sin(am);
+    s+='<text x="'+xt+'" y="'+(yt+5)+'" text-anchor="middle" font-size="14" fill="#6B4E8B">'+signs[i]+'</text>';
+    // Divider lines
+    s+='<line x1="'+(cx+ri*Math.cos(a1))+'" y1="'+(cy+ri*Math.sin(a1))+'" x2="'+(cx+r*Math.cos(a1))+'" y2="'+(cy+r*Math.sin(a1))+'" stroke="#C5B4E3" stroke-width="0.8"/>';
   }
-
-  // ── Casas (igual house desde Asc) ──
-  for(let h=0;h<12;h++){
-    const hDeg=h*30; // offset desde Asc
-    const ang=toAngle(ascDeg+hDeg);
-    const isAxis=(h%3===0);
-    const col=isAxis?'#888':'#bbb';
-    const sw=isAxis?1.2:0.6;
-    s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'"';
-    s+=' x2="'+X(R3,ang)+'" y2="'+Y(R3,ang)+'"';
-    s+=' stroke="'+col+'" stroke-width="'+sw+'"/>';
-    // Ejes principales cruzan hasta el otro lado
-    if(isAxis){
-      s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'"';
-      s+=' x2="'+X(5,ang)+'" y2="'+Y(5,ang)+'"';
-      s+=' stroke="#999" stroke-width="0.8" stroke-dasharray="3,3"/>';
-    }
-    // Número de casa
-    const nm=toAngle(ascDeg+hDeg+15);
-    s+='<text x="'+X((R3+R4)/2,nm)+'" y="'+(Y((R3+R4)/2,nm)+4)+'"';
-    s+=' text-anchor="middle" font-size="9" fill="#777">'+(h===0?1:h+1)+'</text>';
-  }
-
-  // ── Aspectos ──
-  const aspAngles={conjunction:0,opposition:180,trine:120,square:90,sextile:60};
-  const aspColors={conjunction:'#888888',opposition:'#cc2222',trine:'#2266cc',square:'#cc5500',sextile:'#228844'};
-  const aspOrbs={conjunction:8,opposition:8,trine:8,square:7,sextile:6};
-  const aspPlanets=(pData||[]).filter(p=>{
-    const n=getPlanetName(p);
-    return ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'].includes(n);
-  });
-  for(let i=0;i<aspPlanets.length;i++){
-    for(let j=i+1;j<aspPlanets.length;j++){
-      const d1=aspPlanets[i].fullDegree||0, d2=aspPlanets[j].fullDegree||0;
-      let diff=Math.abs(d1-d2); if(diff>180)diff=360-diff;
-      for(const [asp,ang] of Object.entries(aspAngles)){
-        if(Math.abs(diff-ang)<=aspOrbs[asp]){
-          const a1=toAngle(d1), a2=toAngle(d2);
-          s+='<line x1="'+X(R4,a1)+'" y1="'+Y(R4,a1)+'"';
-          s+=' x2="'+X(R4,a2)+'" y2="'+Y(R4,a2)+'"';
-          s+=' stroke="'+aspColors[asp]+'" stroke-width="0.9" opacity="0.7"/>';
-          break;
-        }
-      }
-    }
-  }
-
-  // ── Planetas ──
-  const shownP=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Ascendant','Chiron'];
+  // Middle ring
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="white" stroke="#C5B4E3" stroke-width="1"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rm+'" fill="none" stroke="rgba(197,180,227,0.4)" stroke-width="0.5" stroke-dasharray="2,4"/>';
+  // Planet positions
+  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'Asc',Chiron:'⚷'};
+  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Ascendant'];
   if(pData&&pData.length){
-    const placed=[];
+    let pi=0;
     for(const p of pData){
       const pn=getPlanetName(p);
-      if(!shownP.includes(pn))continue;
-      const ecDeg=p.fullDegree||0;
-      const ang=toAngle(ecDeg);
-      // Ajuste anti-solapamiento
-      let pr=R4-22;
-      for(const q of placed){
-        let da=Math.abs(ang-q.ang); if(da>180)da=360-da;
-        if(da<10) pr-=20;
-      }
-      placed.push({ang,pr});
-      const col=pColors[pn]||'#555';
-      const rx=(p.isRetro==='True');
-      // Tick en anillo de casas
-      s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'"';
-      s+=' x2="'+X(R4+8,ang)+'" y2="'+Y(R4+8,ang)+'"';
-      s+=' stroke="'+col+'" stroke-width="1.5"/>';
-      // Símbolo del planeta
-      s+='<text x="'+X(pr,ang)+'" y="'+(Y(pr,ang)+5)+'"';
-      s+=' text-anchor="middle" font-size="13" fill="'+col+'" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
-      // Grado
-      const deg=Math.floor(ecDeg%30);
-      s+='<text x="'+X(pr-18,ang)+'" y="'+(Y(pr-18,ang)+4)+'"';
-      s+=' text-anchor="middle" font-size="7" fill="'+col+'">'+deg+(rx?'ʀ':'')+'°</text>';
+      if(!shown.includes(pn))continue;
+      const deg=p.fullDegree||0;
+      const rad=(deg-90)*Math.PI/180;
+      const pr=ri-15-(pi%3)*12;
+      const px=cx+pr*Math.cos(rad),py=cy+pr*Math.sin(rad);
+      s+='<circle cx="'+px+'" cy="'+py+'" r="10" fill="rgba(155,126,200,0.15)" stroke="#9B7EC8" stroke-width="0.8"/>';
+      s+='<text x="'+px+'" y="'+(py+4)+'" text-anchor="middle" font-size="9" fill="#4A3880" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
+      pi++;
     }
   }
-
-  // Centro
-  s+='<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="#aaa">NATAL</text>';
+  // Center
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rc+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
+  s+='<text x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle" font-size="11" fill="#9B7EC8" font-weight="bold">✦</text>';
+  s+='<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Carta</text>';
+  s+='<text x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Natal</text>';
   s+='</svg>';
   el.innerHTML=s;
 }
