@@ -41,20 +41,8 @@ export default async function handler(req, res) {
 
     if (wheelRes.status === 'fulfilled' && wheelRes.value.ok) {
       const data = await wheelRes.value.json();
-      // freeastrologyapi puede devolver el SVG en distintos campos
-      if (typeof data === 'string' && data.includes('<svg')) {
-        wheel = data;
-      } else if (data.svg && typeof data.svg === 'string') {
-        wheel = data.svg;
-      } else if (data.output && typeof data.output === 'string' && data.output.includes('<svg')) {
-        wheel = data.output;
-      } else if (data.output && typeof data.output === 'object') {
-        const val = Object.values(data.output).find(v => typeof v === 'string' && v.includes('<svg'));
-        if (val) wheel = val;
-      } else if (data.chart) {
-        wheel = data.chart;
-      }
-      if (!wheel) console.log('wheel response keys:', Object.keys(data), 'output type:', typeof data.output);
+      // freeastrologyapi devuelve chart_url (URL a SVG en S3)
+      wheel = data.chart_url || data.svg || data.output || '';
     }
 
     // Calculate house numbers using Equal House system from Ascendant
