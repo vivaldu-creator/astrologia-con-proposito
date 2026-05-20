@@ -173,7 +173,13 @@ footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--t
     <div class="ro" data-type="dos_preguntas" data-price="$50.000 COP" onclick="selR(this)"><div class="rbadge">Flex</div><span class="ri">◎</span><span class="rn">2 Preguntas</span><span class="rp">$50.000 COP</span></div>
   </div>
   <div class="div">✦ &nbsp; ✦ &nbsp; ✦</div>
-  <input type="hidden" id="apiKey" value=""/>
+  <div class="anote"><p><strong>Prototipo funcional:</strong> Ingresa tu API Key de Anthropic para generar los textos interpretativos. Obtén la tuya en <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p></div>
+  <div class="fr one"><div class="fg"><label>API Key de Anthropic</label><input type="password" id="apiKey" placeholder="sk-ant-..."/></div></div>
+  <div style="text-align:center;margin-top:1rem;margin-bottom:-.5rem;">
+    <button onclick="prefillViviana()" style="background:rgba(155,126,200,.12);border:1.5px solid rgba(155,126,200,.35);border-radius:50px;color:var(--li);font-family:'Quicksand',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.5rem 1.5rem;cursor:pointer;">
+      ⚡ Precargar datos de prueba (Viviana)
+    </button>
+  </div>
   <button class="btn-m" onclick="genPreview()">✦ &nbsp; Revelar mi Vista Previa &nbsp; ✦</button>
 </div>
 </div>
@@ -213,9 +219,23 @@ footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--t
       <li>Análisis de aspectos mayores y menores</li>
       
       <li>Orientación personalizada para tu vida actual</li>
-      <li>Entrega inmediata — PDF descargable</li>
+      <li>Acceso inmediato al informe en pantalla</li>
     </ul>
-    <button class="btn-g" onclick="acceder()">✦ &nbsp; Acceder al Informe Completo &nbsp; ✦</button>
+    <!-- Botón BOLD - se muestra cuando hay informe seleccionado -->
+    <div id="bold-btn-container" style="margin-top:1.2rem;">
+      <script
+        src="https://checkout.bold.co/library/boldPaymentButton.js"
+        data-bold-button
+        data-order-id="informe-astral"
+        data-currency="COP"
+        data-amount="250000"
+        data-api-key="TU_LLAVE_BOLD_AQUI"
+        data-integrity-signature=""
+        data-redirection-url=""
+        data-description="Informe Astrológico Completo"
+      ></script>
+    </div>
+    <p style="font-size:.72rem;color:var(--ts);margin-top:.6rem;opacity:.7;">Pago seguro con BOLD · Tarjeta, PSE o Nequi</p>
     <div style="margin-top:1.2rem;"><button class="btn-s" onclick="togglePkgs()">Ver todos los paquetes</button></div>
   </div>
   <div id="pkgs" style="display:none;margin-top:1.5rem;">
@@ -323,7 +343,19 @@ function prefillViviana(){
   alert('✦ Datos de Viviana precargados. Ingresa tu API Key y presiona el botón.');
 }
 
-function selR(el){document.querySelectorAll('.ro').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');selRep={type:el.dataset.type,price:el.dataset.price,name:el.querySelector('.rn').textContent.trim()};}
+function selR(el){
+  document.querySelectorAll('.ro').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  selRep={type:el.dataset.type,price:el.dataset.price,name:el.querySelector('.rn').textContent.trim()};
+  // Actualizar monto del botón BOLD según el informe seleccionado
+  const rawPrice = el.dataset.price.replace(/[^0-9]/g,'');
+  const boldScript = document.querySelector('[data-bold-button]');
+  if(boldScript){
+    boldScript.setAttribute('data-amount', rawPrice);
+    boldScript.setAttribute('data-description', 'Informe Astrológico: ' + selRep.name);
+    boldScript.setAttribute('data-order-id', 'informe-' + selRep.type + '-' + Date.now());
+  }
+}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 
 // Build knowledge bundle for a chart
@@ -355,7 +387,7 @@ function buildKB(planets){
 }
 
 async function genPreview(){
-  const apiKey='';
+  const apiKey=document.getElementById('apiKey').value.trim();
   const nombre=document.getElementById('nombre').value.trim()||'Consultante';
   const fecha=document.getElementById('fecha').value;
   const hora=document.getElementById('hora').value||'12:00';
@@ -365,7 +397,7 @@ async function genPreview(){
   const tz=parseFloat(document.getElementById('tz').value)||-5;
   if(!selRep.type){alert('Por favor selecciona un tipo de informe.');return;}
   if(!fecha){alert('Por favor ingresa tu fecha de nacimiento.');return;}
-
+  if(!apiKey){alert('Por favor ingresa tu API Key de Anthropic.');return;}
   uData={nombre,fecha,hora,ciudad,lat,lon,tz,apiKey};
   show('s-load');
   const msgs=['Calculando posiciones planetarias…','Consultando el Manual de Astrología…','Tejiendo tu mapa estelar…','Preparando tu lectura personalizada…'];
@@ -429,89 +461,61 @@ function renderWheel(containerId){
   if(wSVG&&wSVG.trim().startsWith('<svg')){
     el.innerHTML=wSVG;
     const svg=el.querySelector('svg');
-    if(svg)svg.style.cssText='width:100%;height:auto;display:block;';
+    if(svg){svg.style.cssText='width:100%;height:auto;border-radius:12px;display:block;';}
     return;
   }
   if(wSVG&&wSVG.length>100){
-    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;display:block;">';
+    // Es una URL (chart_url de freeastrologyapi)
+    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;border-radius:12px;display:block;">';
     return;
   }
-  // Carta natal estilo clásico: fondo blanco, Asc a la izquierda
-  const S=540,cx=270,cy=270;
-  const R1=255,R2=228,R3=195,R4=155,R5=60;
-  const signSymbols=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
-  const signColors=['#cc3333','#886622','#226688','#228866','#cc3333','#886622','#226688','#228866','#cc3333','#886622','#226688','#228866'];
-  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'AC',Chiron:'⚷',NorthNode:'☊'};
-  const pColors={Sun:'#cc8800',Moon:'#6688cc',Mercury:'#448844',Venus:'#cc4488',Mars:'#cc2222',Jupiter:'#cc6622',Saturn:'#887722',Uranus:'#2288aa',Neptune:'#4444aa',Pluto:'#882288',Ascendant:'#cc2222',Chiron:'#886644',NorthNode:'#445588'};
-  const ascP=pData&&pData.find(p=>getPlanetName(p)==='Ascendant');
-  const ascDeg=ascP?(ascP.fullDegree||0):0;
-  function toAngle(ecDeg){return(180-(ecDeg-ascDeg)+360)%360;}
-  function rad(a){return a*Math.PI/180;}
-  function X(r,a){return cx+r*Math.cos(rad(a));}
-  function Y(r,a){return cy+r*Math.sin(rad(a));}
-  let s='<svg viewBox="0 0 '+S+' '+S+'" xmlns="http://www.w3.org/2000/svg">';
-  s+='<rect width="'+S+'" height="'+S+'" fill="white"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R1+'" fill="white" stroke="#aaa" stroke-width="1.5"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R2+'" fill="white" stroke="#aaa" stroke-width="0.8"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R3+'" fill="#f8f8f8" stroke="#aaa" stroke-width="1"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R4+'" fill="white" stroke="#888" stroke-width="1.5"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R5+'" fill="white" stroke="#aaa" stroke-width="1"/>';
-  // Signos
+  // Zodiac SVG placeholder with proper sizing
+  const cx=200,cy=200,r=170,rm=140,ri=90,rc=40;
+  const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+  const sc=['#F4C2C2','#D4C4A8','#C4D4E8','#B9D8F0','#F4D4A8','#C4D8B4','#D4C4E8','#C4A8B8','#D4C4A8','#B8C8D8','#C4D8E8','#D4B8D4'];
+  let s='<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">';
+  // Outer ring background
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
+  // 12 sign segments
   for(let i=0;i<12;i++){
-    const a1=toAngle(i*30),a2=toAngle((i+1)*30);
-    s+='<path d="M'+X(R2,a1)+','+Y(R2,a1)+' A'+R2+','+R2+' 0 0,0 '+X(R2,a2)+','+Y(R2,a2)+' L'+X(R3,a2)+','+Y(R3,a2)+' A'+R3+','+R3+' 0 0,1 '+X(R3,a1)+','+Y(R3,a1)+' Z" fill="'+signColors[i]+'" opacity="0.08" stroke="#ddd" stroke-width="0.5"/>';
-    const am=toAngle(i*30+15);
-    s+='<text x="'+X((R2+R3)/2,am)+'" y="'+(Y((R2+R3)/2,am)+5)+'" text-anchor="middle" font-size="15" fill="'+signColors[i]+'" font-weight="bold">'+signSymbols[i]+'</text>';
-    s+='<line x1="'+X(R3,a1)+'" y1="'+Y(R3,a1)+'" x2="'+X(R1,a1)+'" y2="'+Y(R1,a1)+'" stroke="#ddd" stroke-width="0.6"/>';
+    const a1=((i*30)-90)*Math.PI/180;
+    const a2=(((i+1)*30)-90)*Math.PI/180;
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const xi1=cx+ri*Math.cos(a1),yi1=cy+ri*Math.sin(a1);
+    const xi2=cx+ri*Math.cos(a2),yi2=cy+ri*Math.sin(a2);
+    s+='<path d="M'+xi1+','+yi1+' L'+x1+','+y1+' A'+r+','+r+' 0 0,1 '+x2+','+y2+' L'+xi2+','+yi2+' A'+ri+','+ri+' 0 0,0 '+xi1+','+yi1+' Z" fill="'+sc[i]+'" stroke="#C5B4E3" stroke-width="0.8" opacity="0.85"/>';
+    const am=(a1+a2)/2;
+    const xt=cx+(r+ri)/2*Math.cos(am),yt=cy+(r+ri)/2*Math.sin(am);
+    s+='<text x="'+xt+'" y="'+(yt+5)+'" text-anchor="middle" font-size="14" fill="#6B4E8B">'+signs[i]+'</text>';
+    // Divider lines
+    s+='<line x1="'+(cx+ri*Math.cos(a1))+'" y1="'+(cy+ri*Math.sin(a1))+'" x2="'+(cx+r*Math.cos(a1))+'" y2="'+(cy+r*Math.sin(a1))+'" stroke="#C5B4E3" stroke-width="0.8"/>';
   }
-  // Casas
-  for(let h=0;h<12;h++){
-    const ang=toAngle(ascDeg+h*30);
-    const isAxis=(h%3===0);
-    s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'" x2="'+X(R3,ang)+'" y2="'+Y(R3,ang)+'" stroke="'+(isAxis?'#888':'#ccc')+'" stroke-width="'+(isAxis?1.2:0.6)+'"/>';
-    if(isAxis){s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'" x2="'+X(5,ang)+'" y2="'+Y(5,ang)+'" stroke="#bbb" stroke-width="0.8" stroke-dasharray="3,3"/>';}
-    const nm=toAngle(ascDeg+h*30+15);
-    s+='<text x="'+X((R3+R4)/2,nm)+'" y="'+(Y((R3+R4)/2,nm)+4)+'" text-anchor="middle" font-size="9" fill="#999">'+(h+1)+'</text>';
-  }
-  // Aspectos
-  const aspAngles={conjunction:0,opposition:180,trine:120,square:90,sextile:60};
-  const aspColors={conjunction:'#888',opposition:'#cc2222',trine:'#2266cc',square:'#cc5500',sextile:'#228844'};
-  const aspOrbs={conjunction:8,opposition:8,trine:8,square:7,sextile:6};
-  const aspPl=(pData||[]).filter(p=>['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'].includes(getPlanetName(p)));
-  for(let i=0;i<aspPl.length;i++){
-    for(let j=i+1;j<aspPl.length;j++){
-      const d1=aspPl[i].fullDegree||0,d2=aspPl[j].fullDegree||0;
-      let diff=Math.abs(d1-d2);if(diff>180)diff=360-diff;
-      for(const[asp,ang]of Object.entries(aspAngles)){
-        if(Math.abs(diff-ang)<=aspOrbs[asp]){
-          const a1=toAngle(d1),a2=toAngle(d2);
-          s+='<line x1="'+X(R4,a1)+'" y1="'+Y(R4,a1)+'" x2="'+X(R4,a2)+'" y2="'+Y(R4,a2)+'" stroke="'+aspColors[asp]+'" stroke-width="0.9" opacity="0.65"/>';
-          break;
-        }
-      }
-    }
-  }
-  // Planetas
-  const shownP=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Ascendant','Chiron'];
+  // Middle ring
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="white" stroke="#C5B4E3" stroke-width="1"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rm+'" fill="none" stroke="rgba(197,180,227,0.4)" stroke-width="0.5" stroke-dasharray="2,4"/>';
+  // Planet positions
+  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'Asc',Chiron:'⚷'};
+  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Ascendant'];
   if(pData&&pData.length){
-    const placed=[];
+    let pi=0;
     for(const p of pData){
       const pn=getPlanetName(p);
-      if(!shownP.includes(pn))continue;
-      const ecDeg=p.fullDegree||0;
-      const ang=toAngle(ecDeg);
-      let pr=R4-22;
-      for(const q of placed){let da=Math.abs(ang-q.ang);if(da>180)da=360-da;if(da<10)pr-=20;}
-      placed.push({ang,pr});
-      const col=pColors[pn]||'#555';
-      const rx=(p.isRetro==='True');
-      s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'" x2="'+X(R4+8,ang)+'" y2="'+Y(R4+8,ang)+'" stroke="'+col+'" stroke-width="1.5"/>';
-      s+='<text x="'+X(pr,ang)+'" y="'+(Y(pr,ang)+5)+'" text-anchor="middle" font-size="13" fill="'+col+'" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
-      const deg=Math.floor(ecDeg%30);
-      s+='<text x="'+X(pr-18,ang)+'" y="'+(Y(pr-18,ang)+4)+'" text-anchor="middle" font-size="7" fill="'+col+'">'+deg+(rx?'ʀ':'')+'°</text>';
+      if(!shown.includes(pn))continue;
+      const deg=p.fullDegree||0;
+      const rad=(deg-90)*Math.PI/180;
+      const pr=ri-15-(pi%3)*12;
+      const px=cx+pr*Math.cos(rad),py=cy+pr*Math.sin(rad);
+      s+='<circle cx="'+px+'" cy="'+py+'" r="10" fill="rgba(155,126,200,0.15)" stroke="#9B7EC8" stroke-width="0.8"/>';
+      s+='<text x="'+px+'" y="'+(py+4)+'" text-anchor="middle" font-size="9" fill="#4A3880" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
+      pi++;
     }
   }
-  s+='<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="#aaa">NATAL</text>';
+  // Center
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rc+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
+  s+='<text x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle" font-size="11" fill="#9B7EC8" font-weight="bold">✦</text>';
+  s+='<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Carta</text>';
+  s+='<text x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Natal</text>';
   s+='</svg>';
   el.innerHTML=s;
 }
@@ -539,59 +543,15 @@ async function acceder(){
     return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+rx+', Casa '+(p.house||'?');
   }).join('\n');
 
-  // Cúspides de casas Equal House
-  const signosArr=['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpión','Sagitario','Capricornio','Acuario','Piscis'];
-  const ascPl=pData.find(p=>getPlanetName(p)==='Ascendant');
-  const ascDegFull=ascPl?(ascPl.fullDegree||0):0;
-  const HOUSE_SIGNS={};
-  for(let h=0;h<12;h++) HOUSE_SIGNS[h+1]=signosArr[Math.floor(((ascDegFull+h*30)%360)/30)];
-
-  // Planetas por casa
-  const byHouse={};
-  for(const p of pData){const h=parseInt(p.house)||0;if(!byHouse[h])byHouse[h]=[];byHouse[h].push(p);}
-
-  function houseSection(hNum){
-    const sign=HOUSE_SIGNS[hNum]||'?';
-    const planets=byHouse[hNum]||[];
-    let sec='CASA '+hNum+'\n### Significado Casa '+hNum+'\n### Cúspide Casa '+hNum+' en '+sign;
-    for(const p of planets){
-      const pn=getPlanetName(p);const pEs=PLANET_ES[pn]||pn;
-      const sEs=SIGN_ES[getPlanetSign(p)]||getPlanetSign(p);
-      if(['Ascendant','NorthNode','MeanNode'].includes(pn))continue;
-      if(pn==='Part of Fortune'){sec+='\n### Rueda de la Fortuna en Casa '+hNum+'\n### Rueda de la Fortuna en '+sEs;}
-      else{sec+='\n### '+pEs+' en Casa '+hNum+'\n### '+pEs+' en '+sEs;}
-    }
-    return sec;
-  }
-
-  function aspectsSection(){
-    const aspNames={conjunction:'conjunción',opposition:'oposición',trine:'trígono',square:'cuadratura',sextile:'sextil'};
-    const aspAngles={conjunction:0,opposition:180,trine:120,square:90,sextile:60};
-    const aspOrbs={conjunction:8,opposition:8,trine:8,square:7,sextile:6};
-    const mainP=pData.filter(p=>['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Chiron'].includes(getPlanetName(p)));
-    const found=[];
-    for(let i=0;i<mainP.length;i++){
-      for(let j=i+1;j<mainP.length;j++){
-        const d1=mainP[i].fullDegree||0,d2=mainP[j].fullDegree||0;
-        let diff=Math.abs(d1-d2);if(diff>180)diff=360-diff;
-        for(const [asp,ang] of Object.entries(aspAngles)){
-          if(Math.abs(diff-ang)<=aspOrbs[asp]){
-            const n1=PLANET_ES[getPlanetName(mainP[i])]||getPlanetName(mainP[i]);
-            const n2=PLANET_ES[getPlanetName(mainP[j])]||getPlanetName(mainP[j]);
-            found.push('### '+n1+' '+aspNames[asp]+' '+n2);break;
-          }
-        }
-      }
-    }
-    return found.length?'ASPECTOS PLANETARIOS\n'+found.join('\n'):'';
-  }
-
   const sys='Eres una astróloga experta. Escribe para '+nombre+' en segunda persona, con tono reflexivo, inspirador y fluido. EXACTAMENTE 1 párrafo de 4-5 líneas por sección (### Subtítulo). Conciso pero profundo. NO escribas más de un párrafo por sección.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES:\n'+planetStr+'\n\nFORMATO: encabezados exactos sin asteriscos ni símbolos:\nCASA N\n### Subtítulo\n\nGenera SOLO las secciones indicadas, en orden, sin agregar ni repetir ninguna.';
 
-  const p1=sys+'\n\n'+houseSection(1)+'\n\n'+houseSection(2)+'\n\n'+houseSection(3);
-  const p2=sys+'\n\n'+houseSection(4)+'\n\n'+houseSection(5)+'\n\n'+houseSection(6);
-  const p3=sys+'\n\n'+houseSection(7)+'\n\n'+houseSection(8)+'\n\n'+houseSection(9)+'\n\n'+houseSection(10);
-  const p4=sys+'\n\n'+houseSection(11)+'\n\n'+houseSection(12)+'\n\n'+aspectsSection();
+  const p1=sys+'\n\nCASA 1\n### Significado Casa 1\n### Ascendente y Cúspide Casa 1 en Cáncer\n### Luna en Casa 1\n### Luna en Cáncer\n\nCASA 2\n### Significado Casa 2\n### Cúspide Casa 2 en Leo\n\nCASA 3\n### Significado Casa 3\n### Cúspide Casa 3 en Virgo';
+
+  const p2=sys+'\n\nCASA 4\n### Significado Casa 4\n### Cúspide Casa 4 en Libra\n### Rueda de la Fortuna en Casa 4\n### Rueda de la Fortuna en Libra\n### Plutón en Casa 4\n### Plutón en Escorpión\n\nCASA 5\n### Significado Casa 5\n### Cúspide Casa 5 en Escorpión\n### Saturno en Casa 5\n### Saturno en Escorpión\n### Marte en Casa 5\n### Marte en Escorpión\n\nCASA 6\n### Significado Casa 6\n### Cúspide Casa 6 en Sagitario\n### Urano en Casa 6\n### Urano en Sagitario\n### Neptuno en Casa 6\n### Neptuno en Sagitario';
+
+  const p3=sys+'\n\nCASA 7\n### Significado Casa 7\n### Cúspide Casa 7 en Capricornio\n### Júpiter en Casa 7\n### Júpiter en Capricornio\n\nCASA 8\n### Significado Casa 8\n### Cúspide Casa 8 en Acuario\n\nCASA 9\n### Significado Casa 9\n### Cúspide Casa 9 en Piscis\n### Venus en Casa 9\n### Venus en Aries\n\nCASA 10\n### Significado Casa 10\n### Cúspide Casa 10 en Aries\n### Sol en Casa 10\n### Sol en Aries\n### Mercurio en Casa 10\n### Mercurio en Tauro';
+
+  const p4=sys+'\n\nCASA 11\n### Significado Casa 11\n### Cúspide Casa 11 en Tauro\n### Quirón en Casa 11\n### Quirón en Tauro\n\nCASA 12\n### Significado Casa 12\n### Cúspide Casa 12 en Géminis\n\nASPECTOS PLANETARIOS\n### Luna cuadratura Sol\n### Luna trígono Marte\n### Plutón oposición Tauro\n### Marte oposición Quirón\n### Urano trígono Sol\n### Júpiter trígono Mercurio\n### Venus cuadratura Neptuno';
 
   try{
     const [r1,r2,r3,r4]=await Promise.all([
