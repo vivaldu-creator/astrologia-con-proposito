@@ -438,7 +438,11 @@ function renderWheel(containerId){
     if(svg){svg.style.cssText='width:100%;height:auto;border-radius:12px;display:block;';}
     return;
   }
-  if(wSVG&&wSVG.length>100){el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;border-radius:12px;">';return;}
+  if(wSVG&&wSVG.length>100){
+    // Es una URL (chart_url de freeastrologyapi)
+    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;border-radius:12px;display:block;" crossorigin="anonymous" onerror="this.style.display='none'">';
+    return;
+  }
   // Zodiac SVG placeholder with proper sizing
   const cx=200,cy=200,r=170,rm=140,ri=90,rc=40;
   const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
