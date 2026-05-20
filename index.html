@@ -173,13 +173,7 @@ footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--t
     <div class="ro" data-type="dos_preguntas" data-price="$50.000 COP" onclick="selR(this)"><div class="rbadge">Flex</div><span class="ri">◎</span><span class="rn">2 Preguntas</span><span class="rp">$50.000 COP</span></div>
   </div>
   <div class="div">✦ &nbsp; ✦ &nbsp; ✦</div>
-  <div class="anote"><p><strong>Prototipo funcional:</strong> Ingresa tu API Key de Anthropic para generar los textos interpretativos. Obtén la tuya en <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p></div>
-  <div class="fr one"><div class="fg"><label>API Key de Anthropic</label><input type="password" id="apiKey" placeholder="sk-ant-..."/></div></div>
-  <div style="text-align:center;margin-top:1rem;margin-bottom:-.5rem;">
-    <button onclick="prefillViviana()" style="background:rgba(155,126,200,.12);border:1.5px solid rgba(155,126,200,.35);border-radius:50px;color:var(--li);font-family:'Quicksand',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.5rem 1.5rem;cursor:pointer;">
-      ⚡ Precargar datos de prueba (Viviana)
-    </button>
-  </div>
+  <input type="hidden" id="apiKey" value=""/>
   <button class="btn-m" onclick="genPreview()">✦ &nbsp; Revelar mi Vista Previa &nbsp; ✦</button>
 </div>
 </div>
@@ -361,7 +355,7 @@ function buildKB(planets){
 }
 
 async function genPreview(){
-  const apiKey=document.getElementById('apiKey').value.trim();
+  const apiKey='';
   const nombre=document.getElementById('nombre').value.trim()||'Consultante';
   const fecha=document.getElementById('fecha').value;
   const hora=document.getElementById('hora').value||'12:00';
@@ -371,7 +365,7 @@ async function genPreview(){
   const tz=parseFloat(document.getElementById('tz').value)||-5;
   if(!selRep.type){alert('Por favor selecciona un tipo de informe.');return;}
   if(!fecha){alert('Por favor ingresa tu fecha de nacimiento.');return;}
-  if(!apiKey){alert('Por favor ingresa tu API Key de Anthropic.');return;}
+
   uData={nombre,fecha,hora,ciudad,lat,lon,tz,apiKey};
   show('s-load');
   const msgs=['Calculando posiciones planetarias…','Consultando el Manual de Astrología…','Tejiendo tu mapa estelar…','Preparando tu lectura personalizada…'];
@@ -517,70 +511,51 @@ async function acceder(){
     return (PLANET_ES[pn]||pn)+': '+(SIGN_ES[sn]||sn)+' '+Math.floor(pos%30)+rx+', Casa '+(p.house||'?');
   }).join('\n');
 
-  // ── Construir prompts dinámicamente desde pData ──────────────
-  const HOUSE_SIGNS={}; // cúspide de cada casa: house# -> signo
-  // Calcular cúspides Equal House desde el Ascendente
+  // Cúspides de casas Equal House
+  const signosArr=['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpión','Sagitario','Capricornio','Acuario','Piscis'];
   const ascPl=pData.find(p=>getPlanetName(p)==='Ascendant');
   const ascDegFull=ascPl?(ascPl.fullDegree||0):0;
-  for(let h=0;h<12;h++){
-    const cuspDeg=(ascDegFull+h*30)%360;
-    const signIdx=Math.floor(cuspDeg/30)%12;
-    const signsArr=['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpión','Sagitario','Capricornio','Acuario','Piscis'];
-    HOUSE_SIGNS[h+1]=signsArr[signIdx];
-  }
+  const HOUSE_SIGNS={};
+  for(let h=0;h<12;h++) HOUSE_SIGNS[h+1]=signosArr[Math.floor(((ascDegFull+h*30)%360)/30)];
 
   // Planetas por casa
   const byHouse={};
-  for(const p of pData){
-    const h=parseInt(p.house)||0;
-    if(!byHouse[h])byHouse[h]=[];
-    byHouse[h].push(p);
-  }
+  for(const p of pData){const h=parseInt(p.house)||0;if(!byHouse[h])byHouse[h]=[];byHouse[h].push(p);}
 
-  // Construir secciones de una casa
   function houseSection(hNum){
     const sign=HOUSE_SIGNS[hNum]||'?';
     const planets=byHouse[hNum]||[];
     let sec='CASA '+hNum+'\n### Significado Casa '+hNum+'\n### Cúspide Casa '+hNum+' en '+sign;
     for(const p of planets){
-      const pn=getPlanetName(p); const pEs=PLANET_ES[pn]||pn;
-      const sn=getPlanetSign(p); const sEs=SIGN_ES[sn]||sn;
-      if(['Ascendant','NorthNode','MeanNode'].includes(pn)) continue;
-      if(pn==='Part of Fortune'){
-        sec+='\n### Rueda de la Fortuna en Casa '+hNum+'\n### Rueda de la Fortuna en '+sEs;
-      } else {
-        sec+='\n### '+pEs+' en Casa '+hNum+'\n### '+pEs+' en '+sEs;
-      }
+      const pn=getPlanetName(p);const pEs=PLANET_ES[pn]||pn;
+      const sEs=SIGN_ES[getPlanetSign(p)]||getPlanetSign(p);
+      if(['Ascendant','NorthNode','MeanNode'].includes(pn))continue;
+      if(pn==='Part of Fortune'){sec+='\n### Rueda de la Fortuna en Casa '+hNum+'\n### Rueda de la Fortuna en '+sEs;}
+      else{sec+='\n### '+pEs+' en Casa '+hNum+'\n### '+pEs+' en '+sEs;}
     }
     return sec;
   }
 
-  // Construir aspectos dinámicamente
   function aspectsSection(){
-    const aspNames={conjunction:'conjunción',opposition:'oposición',trine:'trígono',square:'cuadratura',sextil:'sextil'};
-    const aspAngles={conjunction:0,opposition:180,trine:120,square:90,sextil:60};
-    const aspOrbs={conjunction:8,opposition:8,trine:8,square:7,sextil:6};
-    const mainP=pData.filter(p=>{
-      const n=getPlanetName(p);
-      return ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Chiron'].includes(n);
-    });
+    const aspNames={conjunction:'conjunción',opposition:'oposición',trine:'trígono',square:'cuadratura',sextile:'sextil'};
+    const aspAngles={conjunction:0,opposition:180,trine:120,square:90,sextile:60};
+    const aspOrbs={conjunction:8,opposition:8,trine:8,square:7,sextile:6};
+    const mainP=pData.filter(p=>['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Chiron'].includes(getPlanetName(p)));
     const found=[];
     for(let i=0;i<mainP.length;i++){
       for(let j=i+1;j<mainP.length;j++){
-        const d1=mainP[i].fullDegree||0, d2=mainP[j].fullDegree||0;
-        let diff=Math.abs(d1-d2); if(diff>180)diff=360-diff;
+        const d1=mainP[i].fullDegree||0,d2=mainP[j].fullDegree||0;
+        let diff=Math.abs(d1-d2);if(diff>180)diff=360-diff;
         for(const [asp,ang] of Object.entries(aspAngles)){
           if(Math.abs(diff-ang)<=aspOrbs[asp]){
-            const p1n=PLANET_ES[getPlanetName(mainP[i])]||getPlanetName(mainP[i]);
-            const p2n=PLANET_ES[getPlanetName(mainP[j])]||getPlanetName(mainP[j]);
-            found.push(p1n+' '+aspNames[asp]+' '+p2n);
-            break;
+            const n1=PLANET_ES[getPlanetName(mainP[i])]||getPlanetName(mainP[i]);
+            const n2=PLANET_ES[getPlanetName(mainP[j])]||getPlanetName(mainP[j]);
+            found.push('### '+n1+' '+aspNames[asp]+' '+n2);break;
           }
         }
       }
     }
-    if(!found.length) return '';
-    return 'ASPECTOS PLANETARIOS\n'+found.map(a=>'### '+a).join('\n');
+    return found.length?'ASPECTOS PLANETARIOS\n'+found.join('\n'):'';
   }
 
   const sys='Eres una astróloga experta. Escribe para '+nombre+' en segunda persona, con tono reflexivo, inspirador y fluido. EXACTAMENTE 1 párrafo de 4-5 líneas por sección (### Subtítulo). Conciso pero profundo. NO escribas más de un párrafo por sección.\n\nCONSULTANTE: '+nombre+' | FECHA: '+fecha+' | HORA: '+hora+' | LUGAR: '+ciudad+'\nPOSICIONES:\n'+planetStr+'\n\nFORMATO: encabezados exactos sin asteriscos ni símbolos:\nCASA N\n### Subtítulo\n\nGenera SOLO las secciones indicadas, en orden, sin agregar ni repetir ninguna.';
