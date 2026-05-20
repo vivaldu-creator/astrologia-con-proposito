@@ -429,61 +429,89 @@ function renderWheel(containerId){
   if(wSVG&&wSVG.trim().startsWith('<svg')){
     el.innerHTML=wSVG;
     const svg=el.querySelector('svg');
-    if(svg){svg.style.cssText='width:100%;height:auto;border-radius:12px;display:block;';}
+    if(svg)svg.style.cssText='width:100%;height:auto;display:block;';
     return;
   }
   if(wSVG&&wSVG.length>100){
-    // Es una URL (chart_url de freeastrologyapi)
-    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;border-radius:12px;display:block;">';
+    el.innerHTML='<img src="'+wSVG+'" alt="Carta natal" style="width:100%;height:auto;display:block;">';
     return;
   }
-  // Zodiac SVG placeholder with proper sizing
-  const cx=200,cy=200,r=170,rm=140,ri=90,rc=40;
-  const signs=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
-  const sc=['#F4C2C2','#D4C4A8','#C4D4E8','#B9D8F0','#F4D4A8','#C4D8B4','#D4C4E8','#C4A8B8','#D4C4A8','#B8C8D8','#C4D8E8','#D4B8D4'];
-  let s='<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">';
-  // Outer ring background
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
-  // 12 sign segments
+  // Carta natal estilo clásico: fondo blanco, Asc a la izquierda
+  const S=540,cx=270,cy=270;
+  const R1=255,R2=228,R3=195,R4=155,R5=60;
+  const signSymbols=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+  const signColors=['#cc3333','#886622','#226688','#228866','#cc3333','#886622','#226688','#228866','#cc3333','#886622','#226688','#228866'];
+  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'AC',Chiron:'⚷',NorthNode:'☊'};
+  const pColors={Sun:'#cc8800',Moon:'#6688cc',Mercury:'#448844',Venus:'#cc4488',Mars:'#cc2222',Jupiter:'#cc6622',Saturn:'#887722',Uranus:'#2288aa',Neptune:'#4444aa',Pluto:'#882288',Ascendant:'#cc2222',Chiron:'#886644',NorthNode:'#445588'};
+  const ascP=pData&&pData.find(p=>getPlanetName(p)==='Ascendant');
+  const ascDeg=ascP?(ascP.fullDegree||0):0;
+  function toAngle(ecDeg){return(180-(ecDeg-ascDeg)+360)%360;}
+  function rad(a){return a*Math.PI/180;}
+  function X(r,a){return cx+r*Math.cos(rad(a));}
+  function Y(r,a){return cy+r*Math.sin(rad(a));}
+  let s='<svg viewBox="0 0 '+S+' '+S+'" xmlns="http://www.w3.org/2000/svg">';
+  s+='<rect width="'+S+'" height="'+S+'" fill="white"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R1+'" fill="white" stroke="#aaa" stroke-width="1.5"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R2+'" fill="white" stroke="#aaa" stroke-width="0.8"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R3+'" fill="#f8f8f8" stroke="#aaa" stroke-width="1"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R4+'" fill="white" stroke="#888" stroke-width="1.5"/>';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R5+'" fill="white" stroke="#aaa" stroke-width="1"/>';
+  // Signos
   for(let i=0;i<12;i++){
-    const a1=((i*30)-90)*Math.PI/180;
-    const a2=(((i+1)*30)-90)*Math.PI/180;
-    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
-    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
-    const xi1=cx+ri*Math.cos(a1),yi1=cy+ri*Math.sin(a1);
-    const xi2=cx+ri*Math.cos(a2),yi2=cy+ri*Math.sin(a2);
-    s+='<path d="M'+xi1+','+yi1+' L'+x1+','+y1+' A'+r+','+r+' 0 0,1 '+x2+','+y2+' L'+xi2+','+yi2+' A'+ri+','+ri+' 0 0,0 '+xi1+','+yi1+' Z" fill="'+sc[i]+'" stroke="#C5B4E3" stroke-width="0.8" opacity="0.85"/>';
-    const am=(a1+a2)/2;
-    const xt=cx+(r+ri)/2*Math.cos(am),yt=cy+(r+ri)/2*Math.sin(am);
-    s+='<text x="'+xt+'" y="'+(yt+5)+'" text-anchor="middle" font-size="14" fill="#6B4E8B">'+signs[i]+'</text>';
-    // Divider lines
-    s+='<line x1="'+(cx+ri*Math.cos(a1))+'" y1="'+(cy+ri*Math.sin(a1))+'" x2="'+(cx+r*Math.cos(a1))+'" y2="'+(cy+r*Math.sin(a1))+'" stroke="#C5B4E3" stroke-width="0.8"/>';
+    const a1=toAngle(i*30),a2=toAngle((i+1)*30);
+    s+='<path d="M'+X(R2,a1)+','+Y(R2,a1)+' A'+R2+','+R2+' 0 0,0 '+X(R2,a2)+','+Y(R2,a2)+' L'+X(R3,a2)+','+Y(R3,a2)+' A'+R3+','+R3+' 0 0,1 '+X(R3,a1)+','+Y(R3,a1)+' Z" fill="'+signColors[i]+'" opacity="0.08" stroke="#ddd" stroke-width="0.5"/>';
+    const am=toAngle(i*30+15);
+    s+='<text x="'+X((R2+R3)/2,am)+'" y="'+(Y((R2+R3)/2,am)+5)+'" text-anchor="middle" font-size="15" fill="'+signColors[i]+'" font-weight="bold">'+signSymbols[i]+'</text>';
+    s+='<line x1="'+X(R3,a1)+'" y1="'+Y(R3,a1)+'" x2="'+X(R1,a1)+'" y2="'+Y(R1,a1)+'" stroke="#ddd" stroke-width="0.6"/>';
   }
-  // Middle ring
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+ri+'" fill="white" stroke="#C5B4E3" stroke-width="1"/>';
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rm+'" fill="none" stroke="rgba(197,180,227,0.4)" stroke-width="0.5" stroke-dasharray="2,4"/>';
-  // Planet positions
-  const pIcons={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Ascendant:'Asc',Chiron:'⚷'};
-  const shown=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Ascendant'];
-  if(pData&&pData.length){
-    let pi=0;
-    for(const p of pData){
-      const pn=getPlanetName(p);
-      if(!shown.includes(pn))continue;
-      const deg=p.fullDegree||0;
-      const rad=(deg-90)*Math.PI/180;
-      const pr=ri-15-(pi%3)*12;
-      const px=cx+pr*Math.cos(rad),py=cy+pr*Math.sin(rad);
-      s+='<circle cx="'+px+'" cy="'+py+'" r="10" fill="rgba(155,126,200,0.15)" stroke="#9B7EC8" stroke-width="0.8"/>';
-      s+='<text x="'+px+'" y="'+(py+4)+'" text-anchor="middle" font-size="9" fill="#4A3880" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
-      pi++;
+  // Casas
+  for(let h=0;h<12;h++){
+    const ang=toAngle(ascDeg+h*30);
+    const isAxis=(h%3===0);
+    s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'" x2="'+X(R3,ang)+'" y2="'+Y(R3,ang)+'" stroke="'+(isAxis?'#888':'#ccc')+'" stroke-width="'+(isAxis?1.2:0.6)+'"/>';
+    if(isAxis){s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'" x2="'+X(5,ang)+'" y2="'+Y(5,ang)+'" stroke="#bbb" stroke-width="0.8" stroke-dasharray="3,3"/>';}
+    const nm=toAngle(ascDeg+h*30+15);
+    s+='<text x="'+X((R3+R4)/2,nm)+'" y="'+(Y((R3+R4)/2,nm)+4)+'" text-anchor="middle" font-size="9" fill="#999">'+(h+1)+'</text>';
+  }
+  // Aspectos
+  const aspAngles={conjunction:0,opposition:180,trine:120,square:90,sextile:60};
+  const aspColors={conjunction:'#888',opposition:'#cc2222',trine:'#2266cc',square:'#cc5500',sextile:'#228844'};
+  const aspOrbs={conjunction:8,opposition:8,trine:8,square:7,sextile:6};
+  const aspPl=(pData||[]).filter(p=>['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'].includes(getPlanetName(p)));
+  for(let i=0;i<aspPl.length;i++){
+    for(let j=i+1;j<aspPl.length;j++){
+      const d1=aspPl[i].fullDegree||0,d2=aspPl[j].fullDegree||0;
+      let diff=Math.abs(d1-d2);if(diff>180)diff=360-diff;
+      for(const[asp,ang]of Object.entries(aspAngles)){
+        if(Math.abs(diff-ang)<=aspOrbs[asp]){
+          const a1=toAngle(d1),a2=toAngle(d2);
+          s+='<line x1="'+X(R4,a1)+'" y1="'+Y(R4,a1)+'" x2="'+X(R4,a2)+'" y2="'+Y(R4,a2)+'" stroke="'+aspColors[asp]+'" stroke-width="0.9" opacity="0.65"/>';
+          break;
+        }
+      }
     }
   }
-  // Center
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rc+'" fill="white" stroke="#C5B4E3" stroke-width="1.5"/>';
-  s+='<text x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle" font-size="11" fill="#9B7EC8" font-weight="bold">✦</text>';
-  s+='<text x="'+cx+'" y="'+(cy+8)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Carta</text>';
-  s+='<text x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle" font-size="8" fill="#9B7EC8">Natal</text>';
+  // Planetas
+  const shownP=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Ascendant','Chiron'];
+  if(pData&&pData.length){
+    const placed=[];
+    for(const p of pData){
+      const pn=getPlanetName(p);
+      if(!shownP.includes(pn))continue;
+      const ecDeg=p.fullDegree||0;
+      const ang=toAngle(ecDeg);
+      let pr=R4-22;
+      for(const q of placed){let da=Math.abs(ang-q.ang);if(da>180)da=360-da;if(da<10)pr-=20;}
+      placed.push({ang,pr});
+      const col=pColors[pn]||'#555';
+      const rx=(p.isRetro==='True');
+      s+='<line x1="'+X(R4,ang)+'" y1="'+Y(R4,ang)+'" x2="'+X(R4+8,ang)+'" y2="'+Y(R4+8,ang)+'" stroke="'+col+'" stroke-width="1.5"/>';
+      s+='<text x="'+X(pr,ang)+'" y="'+(Y(pr,ang)+5)+'" text-anchor="middle" font-size="13" fill="'+col+'" font-weight="bold">'+(pIcons[pn]||pn[0])+'</text>';
+      const deg=Math.floor(ecDeg%30);
+      s+='<text x="'+X(pr-18,ang)+'" y="'+(Y(pr-18,ang)+4)+'" text-anchor="middle" font-size="7" fill="'+col+'">'+deg+(rx?'ʀ':'')+'°</text>';
+    }
+  }
+  s+='<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="#aaa">NATAL</text>';
   s+='</svg>';
   el.innerHTML=s;
 }
